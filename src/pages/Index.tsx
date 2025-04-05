@@ -1,11 +1,23 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import FormBuilder from '@/components/FormBuilder';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-dragndrop-lightgray">
+      <div className="container mx-auto py-6 px-4">
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Note importante</AlertTitle>
+          <AlertDescription>
+            Cette application est une démonstration de création de formulaires par drag-and-drop. 
+            Pour une intégration avec une base de données PostgreSQL, vous devez connecter votre application
+            à un service backend comme Supabase.
+          </AlertDescription>
+        </Alert>
+        
+        <FormBuilder />
       </div>
     </div>
   );
