@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useDrop } from 'react-dnd';
 import { FormElement, FormElementType, createNewFormElement } from '@/lib/formElementTypes';
@@ -74,7 +73,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
             )}
             <Input
-              type={element.type === FormElementType.NUMBER ? 'number' : element.type}
+              type={element.type}
               placeholder={element.placeholder}
               disabled
             />
