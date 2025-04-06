@@ -44,7 +44,7 @@ const Index = () => {
   };
 
   const handleNewForm = () => {
-    navigate('/');
+    navigate('/form/new');
   };
 
   return (
