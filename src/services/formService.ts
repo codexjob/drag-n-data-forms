@@ -27,6 +27,11 @@ const elementToColumn = (element: FormElement) => {
   };
 };
 
+// Helper to convert FormElement[] to JSON safely
+const safeJsonConvert = (schema: FormElement[]): Json => {
+  return JSON.parse(JSON.stringify(schema)) as Json;
+};
+
 // Sauvegarder un formulaire dans Supabase
 export const saveForm = async (title: string, description: string, elements: FormElement[]): Promise<string | null> => {
   try {
@@ -41,7 +46,7 @@ export const saveForm = async (title: string, description: string, elements: For
     const schemaElements = elements.map(elementToColumn);
     
     // Convertir schemaElements en JSON avant insertion
-    const schemaJson = JSON.parse(JSON.stringify(schemaElements)) as Json;
+    const schemaJson = safeJsonConvert(schemaElements);
     
     // Insérer dans Supabase
     const { data, error } = await supabase

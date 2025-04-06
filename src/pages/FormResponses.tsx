@@ -39,8 +39,9 @@ const FormResponses: React.FC = () => {
         
         // Charger les réponses - assurez-vous que table_name est valide
         if (formData.table_name) {
+          // Use the generic query method instead of the typed one
           const { data, error } = await supabase
-            .from(formData.table_name)
+            .from(formData.table_name as any)
             .select('*')
             .order('created_at', { ascending: false });
           

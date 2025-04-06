@@ -88,10 +88,8 @@ const ViewForm: React.FC = () => {
     try {
       // Soumettre les données du formulaire à la table dynamique
       const { error } = await supabase
-        .from(form.table_name)
-        .insert({
-          ...formValues
-        });
+        .from(form.table_name as any)
+        .insert(formValues as any);
       
       if (error) {
         console.error("Erreur lors de la soumission du formulaire:", error);
