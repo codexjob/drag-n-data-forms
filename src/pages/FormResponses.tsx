@@ -4,10 +4,10 @@ import { useParams, Link } from 'react-router-dom';
 import { fetchFormById, FormData } from '@/services/formService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ArrowLeft, DownloadIcon, Loader2, Eye } from 'lucide-react';
+import { ArrowLeft, DownloadIcon, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { FormElement } from '@/lib/formElementTypes';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface FormResponse {
   id: string;
@@ -50,8 +50,8 @@ const FormResponses: React.FC = () => {
             console.error("Erreur lors du chargement des réponses:", error);
             toast.error("Erreur lors du chargement des réponses");
           } else if (data) {
-            // Assert that data is an array of FormResponse objects
-            setResponses(data as FormResponse[]);
+            // Use double type assertion to safely convert to FormResponse[]
+            setResponses(data as unknown as FormResponse[]);
           }
         }
       } catch (error) {
