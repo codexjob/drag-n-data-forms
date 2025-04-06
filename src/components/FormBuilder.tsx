@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -21,6 +20,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { saveForm } from '@/services/formService';
+import { useNavigate } from 'react-router-dom';
 
 const FormBuilder: React.FC = () => {
   const [formElements, setFormElements] = useState<FormElement[]>([]);
@@ -28,6 +29,8 @@ const FormBuilder: React.FC = () => {
   const [formTitle, setFormTitle] = useState<string>("Nouveau Formulaire");
   const [formDescription, setFormDescription] = useState<string>("Description de votre formulaire");
   const [showDbDialog, setShowDbDialog] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   const selectedElement = formElements.find((element) => element.id === selectedElementId) || null;
 
@@ -65,12 +68,32 @@ const FormBuilder: React.FC = () => {
       return;
     }
 
-    // In a real app, you would save the form to a database here
-    // For now, we'll just show a demo dialog
     setShowDbDialog(true);
   };
 
-  // Generate PostgreSQL schema based on form elements
+  const handleFormSave = async () => {
+    if (formElements.length === 0) return;
+    
+    try {
+      setSaving(true);
+      
+      const formId = await saveForm(formTitle, formDescription, formElements);
+      
+      if (formId) {
+        toast.success("Formulaire sauvegardé avec succès");
+        navigate('/forms');
+      } else {
+        toast.error("Erreur lors de la sauvegarde du formulaire");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde du formulaire:", error);
+      toast.error("Erreur lors de la sauvegarde du formulaire");
+    } finally {
+      setSaving(false);
+      setShowDbDialog(false);
+    }
+  };
+
   const generatePostgresSchema = () => {
     if (formElements.length === 0) return "";
 
@@ -203,17 +226,20 @@ const FormBuilder: React.FC = () => {
               Structure PostgreSQL générée
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Dans une application complète, ce schéma serait utilisé pour créer une table dans votre base de données PostgreSQL.
+              Cette structure sera utilisée pour créer une table dans votre base de données Supabase. Voulez-vous enregistrer ce formulaire?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="bg-dragndrop-text text-white rounded-md p-4 my-4 overflow-auto max-h-80">
             <pre className="text-sm font-mono">{generatePostgresSchema()}</pre>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Fermer</AlertDialogCancel>
-            <AlertDialogAction className="bg-dragndrop-primary hover:bg-dragndrop-secondary">
-              <Save className="w-4 h-4 mr-2" />
-              Enregistrer (démo)
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-dragndrop-primary hover:bg-dragndrop-secondary"
+              onClick={handleFormSave}
+              disabled={saving}
+            >
+              {saving ? 'Enregistrement...' : 'Enregistrer'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

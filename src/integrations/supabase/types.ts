@@ -9,13 +9,49 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      forms: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          published: boolean
+          schema: Json
+          table_name: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          published?: boolean
+          schema: Json
+          table_name: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          published?: boolean
+          schema?: Json
+          table_name?: string
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_form_responses_table: {
+        Args: {
+          form_id: string
+          form_table_name: string
+          form_schema: Json
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
