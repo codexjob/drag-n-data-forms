@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Trash2, Plus } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 
 interface ConfigPanelProps {
   element: FormElement | null;
@@ -19,6 +20,7 @@ interface ConfigPanelProps {
 
 const ConfigPanel: React.FC<ConfigPanelProps> = ({ element, onUpdate, onDelete }) => {
   const [newOptionText, setNewOptionText] = useState('');
+  const [newIconText, setNewIconText] = useState('');
 
   if (!element) {
     return (
@@ -54,10 +56,31 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ element, onUpdate, onDelete }
     setNewOptionText('');
   };
 
+  const handleAddIcon = () => {
+    if (!newIconText.trim()) return;
+    
+    onUpdate({
+      ...element,
+      icons: [...(element.icons || []), newIconText],
+    });
+
+    setNewIconText('');
+  };
+
   const handleRemoveOption = (optionId: string) => {
     onUpdate({
       ...element,
       options: element.options?.filter(option => option.id !== optionId) || [],
+    });
+  };
+
+  const handleRemoveIcon = (iconIndex: number) => {
+    const newIcons = [...(element.icons || [])];
+    newIcons.splice(iconIndex, 1);
+    
+    onUpdate({
+      ...element,
+      icons: newIcons,
     });
   };
 
@@ -164,6 +187,87 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ element, onUpdate, onDelete }
           </div>
         )}
 
+        {/* Validation for SLIDER */}
+        {element.type === FormElementType.SLIDER && (
+          <div className="space-y-4 pt-2 border-t border-dragndrop-gray">
+            <h3 className="text-sm font-medium text-dragndrop-text">Paramètres du curseur</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-dragndrop-text mb-1">
+                  Valeur minimale
+                </label>
+                <Input
+                  type="number"
+                  value={element.validation?.min || 0}
+                  onChange={(e) => handleValidationChange('min', e.target.value ? Number(e.target.value) : 0)}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-dragndrop-text mb-1">
+                  Valeur maximale
+                </label>
+                <Input
+                  type="number"
+                  value={element.validation?.max || 100}
+                  onChange={(e) => handleValidationChange('max', e.target.value ? Number(e.target.value) : 100)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+            
+            <div className="pt-4">
+              <label className="block text-sm font-medium text-dragndrop-text mb-3">
+                Aperçu
+              </label>
+              <Slider
+                value={[element.validation?.min || 0]}
+                min={element.validation?.min || 0}
+                max={element.validation?.max || 100}
+                step={1}
+                disabled
+              />
+              <div className="flex justify-between text-sm text-dragndrop-darkgray mt-2">
+                <span>{element.validation?.min || 0}</span>
+                <span>{element.validation?.max || 100}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Validation for RATING */}
+        {element.type === FormElementType.RATING && (
+          <div className="space-y-4 pt-2 border-t border-dragndrop-gray">
+            <h3 className="text-sm font-medium text-dragndrop-text">Paramètres de notation</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-dragndrop-text mb-1">
+                Nombre d'étoiles
+              </label>
+              <Input
+                type="number"
+                value={element.validation?.max || 5}
+                min={1}
+                max={10}
+                onChange={(e) => handleValidationChange('max', e.target.value ? Number(e.target.value) : 5)}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="pt-2">
+              <label className="block text-sm font-medium text-dragndrop-text mb-2">
+                Aperçu
+              </label>
+              <div className="flex gap-1">
+                {Array.from({ length: (element.validation?.max || 5) }, (_, i) => i + 1).map((star) => (
+                  <span key={star} className="text-2xl text-yellow-400">★</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Options for SELECT, RADIO, CHECKBOX */}
         {[FormElementType.SELECT, FormElementType.RADIO, FormElementType.CHECKBOX].includes(
           element.type
@@ -206,6 +310,45 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ element, onUpdate, onDelete }
                 className="flex-1 mr-2"
               />
               <Button type="button" variant="outline" onClick={handleAddOption}>
+                <Plus className="h-4 w-4 mr-1" />
+                Ajouter
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Icons for ICON_SELECT */}
+        {element.type === FormElementType.ICON_SELECT && (
+          <div className="space-y-4 pt-2 border-t border-dragndrop-gray">
+            <h3 className="text-sm font-medium text-dragndrop-text">Icônes</h3>
+            
+            <div className="space-y-2">
+              {element.icons?.map((icon, index) => (
+                <div key={index} className="flex items-center">
+                  <div className="flex-1 mr-2 p-2 border border-dragndrop-gray rounded-md flex items-center">
+                    <span className="text-xl mr-2">{icon}</span>
+                    <span className="text-dragndrop-darkgray text-sm">{icon}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveIcon(index)}
+                  >
+                    <Trash2 className="h-4 w-4 text-dragndrop-darkgray" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center">
+              <Input
+                value={newIconText}
+                onChange={(e) => setNewIconText(e.target.value)}
+                placeholder="Nouvel emoji ou icône"
+                className="flex-1 mr-2"
+              />
+              <Button type="button" variant="outline" onClick={handleAddIcon}>
                 <Plus className="h-4 w-4 mr-1" />
                 Ajouter
               </Button>

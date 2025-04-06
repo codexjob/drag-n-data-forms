@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { useDrop, useDrag, DropTargetMonitor } from 'react-dnd';
 import { FormElement, FormElementType, createNewFormElement } from '@/lib/formElementTypes';
@@ -10,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, GripVertical } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface FormPreviewProps {
   elements: FormElement[];
@@ -56,26 +58,15 @@ const FormElementItem = ({
       const dragIndex = item.index;
       const hoverIndex = index;
 
-      // Ne rien faire si on déplace sur nous-mêmes
       if (dragIndex === hoverIndex) {
         return;
       }
 
-      // Déterminer le rectangle sur l'écran
       const hoverBoundingRect = ref.current?.getBoundingClientRect();
-
-      // Obtenir le milieu vertical
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-
-      // Déterminer la position du mouseover
       const clientOffset = monitor.getClientOffset();
-
-      // Obtenir la position verticale
       const hoverClientY = (clientOffset as { y: number }).y - hoverBoundingRect.top;
 
-      // Ne déplace que lorsqu'on dépasse la moitié de la hauteur
-      // Déplacement vers le bas, ne doit dépasser que les éléments dont le y du curseur est après le milieu de l'élément
-      // Déplacement vers le haut, ne doit dépasser que les éléments dont le y du curseur est avant le milieu
       if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
         return;
       }
@@ -83,10 +74,7 @@ const FormElementItem = ({
         return;
       }
 
-      // Effectuer le déplacement
       onMoveElement(dragIndex, hoverIndex);
-
-      // Mettre à jour l'index pour l'élément traîné
       item.index = hoverIndex;
     },
   });
@@ -103,7 +91,6 @@ const FormElementItem = ({
 
   const opacity = isDragging ? 0.4 : 1;
   
-  // Initialiser le drag & drop
   drag(drop(ref));
 
   const baseClassName = `form-element ${
@@ -266,6 +253,116 @@ const FormElementItem = ({
               <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
             )}
             <Input type="date" disabled />
+          </>
+        );
+        
+      case FormElementType.TIME:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <Input type="time" disabled />
+          </>
+        );
+        
+      case FormElementType.SLIDER:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <div className="pt-4 pb-2">
+              <Slider 
+                disabled 
+                value={[element.validation?.min || 0]} 
+                max={element.validation?.max || 100}
+              />
+            </div>
+            <div className="flex justify-between text-sm text-dragndrop-darkgray">
+              <span>{element.validation?.min || 0}</span>
+              <span>{element.validation?.max || 100}</span>
+            </div>
+          </>
+        );
+        
+      case FormElementType.TOGGLE:
+        return (
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+                <Label className="text-sm font-medium">
+                  {element.label}
+                  {element.required && <span className="text-red-500 ml-1">*</span>}
+                </Label>
+              </div>
+              <Switch disabled />
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm">{element.description}</p>
+            )}
+          </>
+        );
+        
+      case FormElementType.RATING:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <div className="flex gap-1">
+              {Array.from({ length: (element.validation?.max || 5) }, (_, i) => i + 1).map((star) => (
+                <span key={star} className="text-2xl text-gray-300">★</span>
+              ))}
+            </div>
+          </>
+        );
+        
+      case FormElementType.ICON_SELECT:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <div className="flex flex-wrap gap-1">
+              {element.icons?.map((icon, index) => (
+                <div 
+                  key={index} 
+                  className="text-2xl p-2 border border-dragndrop-gray rounded-md"
+                >
+                  {icon}
+                </div>
+              ))}
+            </div>
           </>
         );
         

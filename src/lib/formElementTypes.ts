@@ -1,3 +1,4 @@
+
 export interface FormElement {
   id: string;
   type: FormElementType;
@@ -13,6 +14,8 @@ export interface FormElement {
     pattern?: string;
   };
   columnName?: string;
+  icons?: string[];
+  selectedIcon?: string;
 }
 
 export interface FormElementOption {
@@ -32,6 +35,11 @@ export enum FormElementType {
   DATE = 'date',
   PHONE = 'phone',
   URL = 'url',
+  SLIDER = 'slider',
+  TOGGLE = 'toggle',
+  TIME = 'time',
+  RATING = 'rating',
+  ICON_SELECT = 'icon_select',
 }
 
 export interface DragItem {
@@ -51,6 +59,11 @@ export const formElementTypeToLabel: Record<FormElementType, string> = {
   [FormElementType.DATE]: 'Date',
   [FormElementType.PHONE]: 'Téléphone',
   [FormElementType.URL]: 'URL',
+  [FormElementType.SLIDER]: 'Curseur',
+  [FormElementType.TOGGLE]: 'Interrupteur',
+  [FormElementType.TIME]: 'Heure',
+  [FormElementType.RATING]: 'Notation',
+  [FormElementType.ICON_SELECT]: 'Choix d\'icône',
 };
 
 export const formElementTypeToPostgresType: Record<FormElementType, string> = {
@@ -64,6 +77,11 @@ export const formElementTypeToPostgresType: Record<FormElementType, string> = {
   [FormElementType.DATE]: 'DATE',
   [FormElementType.PHONE]: 'VARCHAR(20)',
   [FormElementType.URL]: 'VARCHAR(255)',
+  [FormElementType.SLIDER]: 'NUMERIC',
+  [FormElementType.TOGGLE]: 'BOOLEAN',
+  [FormElementType.TIME]: 'TIME',
+  [FormElementType.RATING]: 'INTEGER',
+  [FormElementType.ICON_SELECT]: 'VARCHAR(255)',
 };
 
 export const formElementIcons: Record<FormElementType, string> = {
@@ -77,6 +95,11 @@ export const formElementIcons: Record<FormElementType, string> = {
   [FormElementType.DATE]: '✓ 📅',
   [FormElementType.PHONE]: '✓ 📞',
   [FormElementType.URL]: '✓ 🔗',
+  [FormElementType.SLIDER]: '✓ ⟿',
+  [FormElementType.TOGGLE]: '✓ ⚙️',
+  [FormElementType.TIME]: '✓ 🕒',
+  [FormElementType.RATING]: '✓ ★',
+  [FormElementType.ICON_SELECT]: '✓ 🖼️',
 };
 
 export const createNewFormElement = (type: FormElementType): FormElement => {
@@ -138,6 +161,43 @@ export const createNewFormElement = (type: FormElementType): FormElement => {
     case FormElementType.DATE:
       return {
         ...baseElement,
+        placeholder: '',
+      };
+    case FormElementType.SLIDER:
+      return {
+        ...baseElement,
+        validation: {
+          type: 'number',
+          min: 0,
+          max: 100,
+        },
+        placeholder: '',
+      };
+    case FormElementType.TOGGLE:
+      return {
+        ...baseElement,
+        placeholder: '',
+      };
+    case FormElementType.TIME:
+      return {
+        ...baseElement,
+        placeholder: '',
+      };
+    case FormElementType.RATING:
+      return {
+        ...baseElement,
+        validation: {
+          type: 'number',
+          min: 1,
+          max: 5,
+        },
+        placeholder: '',
+      };
+    case FormElementType.ICON_SELECT:
+      return {
+        ...baseElement,
+        icons: ['👍', '👎', '😀', '😢', '🚀'],
+        selectedIcon: '',
         placeholder: '',
       };
     default:
