@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -35,7 +36,8 @@ const FormBuilder: React.FC = () => {
   const selectedElement = formElements.find((element) => element.id === selectedElementId) || null;
 
   const handleAddElement = (element: FormElement) => {
-    setFormElements([...formElements, element]);
+    // Correction ici : on utilise l'état précédent au lieu d'une référence directe à formElements
+    setFormElements(prevElements => [...prevElements, element]);
     setSelectedElementId(element.id);
     toast.success("Élément ajouté avec succès");
   };
