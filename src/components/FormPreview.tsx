@@ -1,5 +1,6 @@
-import React from 'react';
-import { useDrop } from 'react-dnd';
+
+import React, { useRef } from 'react';
+import { useDrop, useDrag, DropTargetMonitor } from 'react-dnd';
 import { FormElement, FormElementType, createNewFormElement } from '@/lib/formElementTypes';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +20,272 @@ interface FormPreviewProps {
   formTitle: string;
   formDescription: string;
 }
+
+type DragItem = {
+  index: number;
+  id: string;
+  type: string;
+};
+
+const FormElementItem = ({ 
+  element, 
+  index, 
+  isSelected, 
+  onSelectElement, 
+  onMoveElement 
+}: { 
+  element: FormElement; 
+  index: number; 
+  isSelected: boolean; 
+  onSelectElement: (id: string) => void;
+  onMoveElement: (dragIndex: number, hoverIndex: number) => void;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  
+  const [{ handlerId }, drop] = useDrop({
+    accept: 'FORM_ELEMENT_CARD',
+    collect(monitor) {
+      return {
+        handlerId: monitor.getHandlerId(),
+      };
+    },
+    hover(item: DragItem, monitor: DropTargetMonitor) {
+      if (!ref.current) {
+        return;
+      }
+      const dragIndex = item.index;
+      const hoverIndex = index;
+
+      // Ne rien faire si on déplace sur nous-mêmes
+      if (dragIndex === hoverIndex) {
+        return;
+      }
+
+      // Déterminer le rectangle sur l'écran
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+
+      // Obtenir le milieu vertical
+      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+
+      // Déterminer la position du mouseover
+      const clientOffset = monitor.getClientOffset();
+
+      // Obtenir la position verticale
+      const hoverClientY = (clientOffset as { y: number }).y - hoverBoundingRect.top;
+
+      // Ne déplace que lorsqu'on dépasse la moitié de la hauteur
+      // Déplacement vers le bas, ne doit dépasser que les éléments dont le y du curseur est après le milieu de l'élément
+      // Déplacement vers le haut, ne doit dépasser que les éléments dont le y du curseur est avant le milieu
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+        return;
+      }
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+        return;
+      }
+
+      // Effectuer le déplacement
+      onMoveElement(dragIndex, hoverIndex);
+
+      // Mettre à jour l'index pour l'élément traîné
+      item.index = hoverIndex;
+    },
+  });
+
+  const [{ isDragging }, drag] = useDrag({
+    type: 'FORM_ELEMENT_CARD',
+    item: () => {
+      return { id: element.id, index };
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const opacity = isDragging ? 0.4 : 1;
+  
+  // Initialiser le drag & drop
+  drag(drop(ref));
+
+  const baseClassName = `form-element ${
+    isSelected ? 'form-element-selected' : ''
+  }`;
+
+  const handleElementClick = () => {
+    onSelectElement(element.id);
+  };
+
+  const renderElementContent = () => {
+    switch (element.type) {
+      case FormElementType.TEXT:
+      case FormElementType.EMAIL:
+      case FormElementType.PHONE:
+      case FormElementType.URL:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <Input
+              type={element.type}
+              placeholder={element.placeholder}
+              disabled
+            />
+          </>
+        );
+        
+      case FormElementType.NUMBER:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <Input
+              type="number"
+              placeholder={element.placeholder}
+              disabled
+            />
+          </>
+        );
+        
+      case FormElementType.TEXTAREA:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <Textarea placeholder={element.placeholder} disabled />
+          </>
+        );
+        
+      case FormElementType.SELECT:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <Select disabled>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez une option" />
+              </SelectTrigger>
+              <SelectContent>
+                {element.options?.map((option) => (
+                  <SelectItem key={option.id} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        );
+        
+      case FormElementType.RADIO:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <RadioGroup disabled>
+              {element.options?.map((option) => (
+                <div key={option.id} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={option.id} disabled />
+                  <Label htmlFor={option.id}>{option.label}</Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </>
+        );
+        
+      case FormElementType.CHECKBOX:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <div className="space-y-2">
+              {element.options?.map((option) => (
+                <div key={option.id} className="flex items-center space-x-2">
+                  <Checkbox id={option.id} disabled />
+                  <Label htmlFor={option.id}>{option.label}</Label>
+                </div>
+              ))}
+            </div>
+          </>
+        );
+        
+      case FormElementType.DATE:
+        return (
+          <>
+            <div className="flex items-center mb-2">
+              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
+              <Label className="text-sm font-medium">
+                {element.label}
+                {element.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+            {element.description && (
+              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
+            )}
+            <Input type="date" disabled />
+          </>
+        );
+        
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div 
+      ref={ref}
+      style={{ opacity }}
+      className={baseClassName} 
+      onClick={handleElementClick}
+      data-handler-id={handlerId}
+    >
+      {renderElementContent()}
+    </div>
+  );
+};
 
 const FormPreview: React.FC<FormPreviewProps> = ({
   elements,
@@ -44,176 +311,6 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }),
   }));
 
-  const renderFormElement = (element: FormElement) => {
-    const isSelected = element.id === selectedElementId;
-    
-    const baseClassName = `form-element ${
-      isSelected ? 'form-element-selected' : ''
-    }`;
-
-    const handleElementClick = () => {
-      onSelectElement(element.id);
-    };
-
-    switch (element.type) {
-      case FormElementType.TEXT:
-      case FormElementType.EMAIL:
-      case FormElementType.PHONE:
-      case FormElementType.URL:
-        return (
-          <div className={baseClassName} onClick={handleElementClick}>
-            <div className="flex items-center mb-2">
-              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
-              <Label className="text-sm font-medium">
-                {element.label}
-                {element.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
-            </div>
-            {element.description && (
-              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
-            )}
-            <Input
-              type={element.type}
-              placeholder={element.placeholder}
-              disabled
-            />
-          </div>
-        );
-        
-      case FormElementType.NUMBER:
-        return (
-          <div className={baseClassName} onClick={handleElementClick}>
-            <div className="flex items-center mb-2">
-              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
-              <Label className="text-sm font-medium">
-                {element.label}
-                {element.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
-            </div>
-            {element.description && (
-              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
-            )}
-            <Input
-              type="number"
-              placeholder={element.placeholder}
-              disabled
-            />
-          </div>
-        );
-        
-      case FormElementType.TEXTAREA:
-        return (
-          <div className={baseClassName} onClick={handleElementClick}>
-            <div className="flex items-center mb-2">
-              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
-              <Label className="text-sm font-medium">
-                {element.label}
-                {element.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
-            </div>
-            {element.description && (
-              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
-            )}
-            <Textarea placeholder={element.placeholder} disabled />
-          </div>
-        );
-        
-      case FormElementType.SELECT:
-        return (
-          <div className={baseClassName} onClick={handleElementClick}>
-            <div className="flex items-center mb-2">
-              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
-              <Label className="text-sm font-medium">
-                {element.label}
-                {element.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
-            </div>
-            {element.description && (
-              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
-            )}
-            <Select disabled>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez une option" />
-              </SelectTrigger>
-              <SelectContent>
-                {element.options?.map((option) => (
-                  <SelectItem key={option.id} value={option.value}>{option.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        );
-        
-      case FormElementType.RADIO:
-        return (
-          <div className={baseClassName} onClick={handleElementClick}>
-            <div className="flex items-center mb-2">
-              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
-              <Label className="text-sm font-medium">
-                {element.label}
-                {element.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
-            </div>
-            {element.description && (
-              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
-            )}
-            <RadioGroup disabled>
-              {element.options?.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option.value} id={option.id} disabled />
-                  <Label htmlFor={option.id}>{option.label}</Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-        );
-        
-      case FormElementType.CHECKBOX:
-        return (
-          <div className={baseClassName} onClick={handleElementClick}>
-            <div className="flex items-center mb-2">
-              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
-              <Label className="text-sm font-medium">
-                {element.label}
-                {element.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
-            </div>
-            {element.description && (
-              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
-            )}
-            <div className="space-y-2">
-              {element.options?.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2">
-                  <Checkbox id={option.id} disabled />
-                  <Label htmlFor={option.id}>{option.label}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-        
-      case FormElementType.DATE:
-        return (
-          <div className={baseClassName} onClick={handleElementClick}>
-            <div className="flex items-center mb-2">
-              <GripVertical className="mr-2 text-dragndrop-darkgray cursor-move" size={18} />
-              <Label className="text-sm font-medium">
-                {element.label}
-                {element.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
-            </div>
-            {element.description && (
-              <p className="text-dragndrop-darkgray text-sm mb-2">{element.description}</p>
-            )}
-            <Input type="date" disabled />
-          </div>
-        );
-        
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="relative flex flex-col h-full">
       <div className="p-4 mb-4 bg-white rounded-lg border border-dragndrop-gray">
@@ -237,8 +334,15 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           </div>
         ) : (
           <div className="space-y-4">
-            {elements.map((element) => (
-              <div key={element.id}>{renderFormElement(element)}</div>
+            {elements.map((element, index) => (
+              <FormElementItem 
+                key={element.id}
+                element={element} 
+                index={index}
+                isSelected={element.id === selectedElementId}
+                onSelectElement={onSelectElement}
+                onMoveElement={onMoveElement}
+              />
             ))}
           </div>
         )}
