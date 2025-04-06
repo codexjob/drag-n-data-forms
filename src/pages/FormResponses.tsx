@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, DownloadIcon, Loader2, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { FormElement } from '@/lib/formElementTypes';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface FormResponse {
   id: string;
@@ -48,8 +49,9 @@ const FormResponses: React.FC = () => {
           if (error) {
             console.error("Erreur lors du chargement des réponses:", error);
             toast.error("Erreur lors du chargement des réponses");
-          } else {
-            setResponses(data || []);
+          } else if (data) {
+            // Assert that data is an array of FormResponse objects
+            setResponses(data as FormResponse[]);
           }
         }
       } catch (error) {
@@ -128,11 +130,7 @@ const FormResponses: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-dragndrop-lightgray flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-dragndrop-primary" />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!form) {
