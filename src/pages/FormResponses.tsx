@@ -2,10 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchFormById, FormData } from '@/services/formService';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ArrowLeft, DownloadIcon, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { FormElement } from '@/lib/formElementTypes';
 
 interface FormResponse {
   id: string;
@@ -24,74 +25,103 @@ const FormResponses: React.FC = () => {
       if (!id) return;
       
       setLoading(true);
-      
-      // Charger les informations du formulaire
-      const formData = await fetchFormById(id);
-      setForm(formData);
-      
-      if (formData && formData.table_name) {
-        // Charger les réponses du formulaire
-        try {
-          const { data, error } = await supabase
-            .from(formData.table_name)
-            .select('*')
-            .order('created_at', { ascending: false });
-          
-          if (error) {
-            console.error("Erreur lors du chargement des réponses:", error);
-            toast.error("Erreur lors du chargement des réponses");
-          } else {
-            setResponses(data || []);
-          }
-        } catch (error) {
+      try {
+        // Charger le formulaire
+        const formData = await fetchFormById(id);
+        
+        if (!formData) {
+          toast.error("Formulaire non trouvé");
+          setLoading(false);
+          return;
+        }
+        
+        setForm(formData);
+        
+        // Charger les réponses
+        const { data, error } = await supabase
+          .from(formData.table_name)
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
           console.error("Erreur lors du chargement des réponses:", error);
           toast.error("Erreur lors du chargement des réponses");
+        } else {
+          setResponses(data || []);
         }
+      } catch (error) {
+        console.error("Erreur:", error);
+        toast.error("Une erreur est survenue");
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     loadFormAndResponses();
   }, [id]);
 
-  const exportToCSV = () => {
+  const handleExportCSV = () => {
     if (!form || !responses.length) return;
     
-    // Obtenir les en-têtes (colonnes) du tableau
-    const headers = Object.keys(responses[0])
-      .filter(key => key !== 'id' && key !== 'form_id') // Exclure certaines colonnes techniques
-      .map(key => key.replace(/_/g, ' ')); // Formatter les noms de colonnes
-    
-    // Créer les lignes de données
-    const rows = responses.map(response => 
-      Object.entries(response)
-        .filter(([key]) => key !== 'id' && key !== 'form_id')
-        .map(([, value]) => {
-          // Formater les valeurs pour le CSV
-          if (value === null || value === undefined) return '';
-          if (Array.isArray(value)) return `"${value.join(', ')}"`;
-          if (typeof value === 'object') return `"${JSON.stringify(value)}"`;
-          return `"${String(value).replace(/"/g, '""')}"`;
+    try {
+      // Obtenir les en-têtes (noms des colonnes)
+      const schema = form.schema as unknown as FormElement[];
+      const headers = ['ID', 'Date de soumission', ...schema.map(el => el.label)];
+      
+      // Préparer les données
+      const csvRows = [
+        headers.join(','), // En-têtes
+        ...responses.map(response => {
+          const rowValues = [
+            response.id,
+            new Date(response.created_at).toLocaleString(),
+            ...schema.map(element => {
+              const columnName = element.columnName || element.label
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "_")
+                .replace(/_+/g, "_")
+                .replace(/^_|_$/g, "");
+              
+              let value = response[columnName];
+              
+              // Formater la valeur selon le type
+              if (Array.isArray(value)) {
+                value = value.join('; ');
+              } else if (value === null || value === undefined) {
+                value = '';
+              }
+              
+              // Échapper les virgules et les guillemets pour le CSV
+              if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+                value = `"${value.replace(/"/g, '""')}"`;
+              }
+              
+              return value;
+            })
+          ];
+          
+          return rowValues.join(',');
         })
-    );
-    
-    // Assembler le contenu CSV
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-    
-    // Créer un objet Blob et un lien de téléchargement
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${form.title.replace(/\s+/g, '_')}_responses.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      ];
+      
+      // Créer le contenu CSV
+      const csvContent = csvRows.join('\n');
+      
+      // Créer un Blob et un lien de téléchargement
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `responses_${form.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Export CSV téléchargé");
+    } catch (error) {
+      console.error("Erreur lors de l'export CSV:", error);
+      toast.error("Erreur lors de l'export CSV");
+    }
   };
 
   if (loading) {
@@ -108,10 +138,10 @@ const FormResponses: React.FC = () => {
         <div className="container mx-auto py-6 px-4">
           <h1 className="text-2xl font-bold text-dragndrop-text mb-4">Formulaire non trouvé</h1>
           <p className="text-dragndrop-darkgray mb-4">
-            Le formulaire que vous recherchez n'existe pas ou n'a pas été publié.
+            Le formulaire que vous recherchez n'existe pas.
           </p>
           <Button asChild>
-            <Link to="/forms">
+            <Link to="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour aux formulaires
             </Link>
@@ -121,65 +151,90 @@ const FormResponses: React.FC = () => {
     );
   }
 
+  const schema = form.schema as unknown as FormElement[];
+
   return (
     <div className="min-h-screen bg-dragndrop-lightgray">
       <div className="container mx-auto py-6 px-4">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <Button variant="outline" asChild className="mb-2">
-              <Link to="/forms">
+        <div className="flex items-center mb-6 justify-between">
+          <div className="flex items-center">
+            <Button variant="outline" asChild className="mr-4">
+              <Link to="/">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Retour aux formulaires
+                Retour
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold text-dragndrop-text">Réponses: {form.title}</h1>
-            <p className="text-dragndrop-darkgray">
-              {responses.length} réponse{responses.length !== 1 ? 's' : ''} reçue{responses.length !== 1 ? 's' : ''}
-            </p>
+            <div>
+              <h1 className="text-2xl font-bold text-dragndrop-text">Réponses au formulaire</h1>
+              <p className="text-dragndrop-darkgray">{form.title}</p>
+            </div>
           </div>
+          
           {responses.length > 0 && (
-            <Button onClick={exportToCSV}>
-              <Download className="w-4 h-4 mr-2" />
+            <Button onClick={handleExportCSV} variant="outline">
+              <DownloadIcon className="w-4 h-4 mr-2" />
               Exporter CSV
             </Button>
           )}
         </div>
 
         {responses.length === 0 ? (
-          <div className="bg-white rounded-lg border border-dragndrop-gray p-6">
-            <p className="text-center text-dragndrop-darkgray">
-              Aucune réponse n'a encore été soumise pour ce formulaire.
+          <div className="bg-white rounded-lg border border-dragndrop-gray p-8 text-center">
+            <h2 className="text-xl font-semibold mb-2">Aucune réponse</h2>
+            <p className="text-dragndrop-darkgray mb-4">
+              Ce formulaire n'a pas encore reçu de réponses.
             </p>
+            <Button asChild>
+              <Link to={`/form/${id}`}>
+                <Eye className="w-4 h-4 mr-2" />
+                Voir le formulaire
+              </Link>
+            </Button>
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-dragndrop-gray overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {Object.keys(responses[0])
-                      .filter(key => key !== 'id' && key !== 'form_id')
-                      .map(key => (
-                        <th
-                          key={key}
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          {key.replace(/_/g, ' ')}
-                        </th>
-                      ))}
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-dragndrop-lightgray">
+                    <th className="px-4 py-3 text-left font-medium text-dragndrop-text">ID</th>
+                    <th className="px-4 py-3 text-left font-medium text-dragndrop-text">Date</th>
+                    {schema.map((element) => (
+                      <th key={element.id} className="px-4 py-3 text-left font-medium text-dragndrop-text">
+                        {element.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {responses.map((response) => (
-                    <tr key={response.id}>
-                      {Object.entries(response)
-                        .filter(([key]) => key !== 'id' && key !== 'form_id')
-                        .map(([key, value]) => (
-                          <td key={key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate">
-                            {Array.isArray(value) ? value.join(', ') : String(value || '')}
+                    <tr key={response.id} className="border-t border-dragndrop-gray hover:bg-dragndrop-lightgray/30">
+                      <td className="px-4 py-3 text-dragndrop-darkgray">{response.id.slice(0, 8)}...</td>
+                      <td className="px-4 py-3 text-dragndrop-darkgray">
+                        {new Date(response.created_at).toLocaleString()}
+                      </td>
+                      {schema.map((element) => {
+                        const columnName = element.columnName || element.label
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]/g, "_")
+                          .replace(/_+/g, "_")
+                          .replace(/^_|_$/g, "");
+                        
+                        let value = response[columnName];
+                        
+                        // Formater la valeur selon le type
+                        if (Array.isArray(value)) {
+                          value = value.join(', ');
+                        } else if (value === null || value === undefined) {
+                          value = '-';
+                        }
+                        
+                        return (
+                          <td key={element.id} className="px-4 py-3 text-dragndrop-darkgray">
+                            {String(value)}
                           </td>
-                        ))}
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>

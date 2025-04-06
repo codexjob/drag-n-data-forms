@@ -34,7 +34,7 @@ const ViewForm: React.FC = () => {
         // Initialiser les valeurs du formulaire
         const initialValues: Record<string, any> = {};
         (formData.schema as unknown as FormElement[]).forEach(element => {
-          const columnName = element.label
+          const columnName = element.columnName || element.label
             .toLowerCase()
             .replace(/[^a-z0-9]/g, "_")
             .replace(/_+/g, "_")
@@ -111,7 +111,7 @@ const ViewForm: React.FC = () => {
   };
 
   const renderFormElement = (element: FormElement) => {
-    const columnName = element.label
+    const columnName = element.columnName || element.label
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "_")
       .replace(/_+/g, "_")
@@ -306,7 +306,7 @@ const ViewForm: React.FC = () => {
             Le formulaire que vous recherchez n'existe pas ou n'a pas été publié.
           </p>
           <Button asChild>
-            <Link to="/forms">
+            <Link to="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour aux formulaires
             </Link>
@@ -333,7 +333,7 @@ const ViewForm: React.FC = () => {
                 Soumettre un autre formulaire
               </Button>
               <Button variant="outline" asChild>
-                <Link to="/forms">
+                <Link to="/">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Retour aux formulaires
                 </Link>
@@ -351,7 +351,7 @@ const ViewForm: React.FC = () => {
         <div className="bg-white rounded-lg border border-dragndrop-gray p-6 max-w-3xl mx-auto">
           <div className="mb-6">
             <Button variant="outline" asChild className="mb-4">
-              <Link to="/forms">
+              <Link to="/">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Retour aux formulaires
               </Link>

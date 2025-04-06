@@ -9,6 +9,8 @@ import NotFound from "./pages/NotFound";
 import FormsManager from "./pages/FormsManager";
 import ViewForm from "./pages/ViewForm";
 import FormResponses from "./pages/FormResponses";
+import FormBuilder from "./components/FormBuilder";
+import FormConfig from "./pages/FormConfig";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/forms" element={<FormsManager />} />
           <Route path="/form/:id" element={<ViewForm />} />
+          <Route path="/form/:id/edit" element={<FormBuilder />} />
+          <Route path="/form/:id/config" element={<FormConfig />} />
+          <Route path="/form/new" element={<FormBuilder />} />
           <Route path="/responses/:id" element={<FormResponses />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

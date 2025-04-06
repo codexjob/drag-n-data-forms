@@ -57,7 +57,7 @@ export const saveForm = async (title: string, description: string, elements: For
       return null;
     }
 
-    return data.id;
+    return data?.id || null;
   } catch (error) {
     console.error("Erreur lors de la sauvegarde du formulaire:", error);
     return null;
