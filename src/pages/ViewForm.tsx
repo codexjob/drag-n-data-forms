@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchFormById, FormData } from '@/services/formService';
@@ -33,7 +32,7 @@ const ViewForm: React.FC = () => {
         setForm(formData);
         // Initialiser les valeurs du formulaire
         const initialValues: Record<string, any> = {};
-        (formData.schema as unknown as FormElement[]).forEach(element => {
+        (formData.schema as FormElement[]).forEach(element => {
           const columnName = element.columnName || element.label
             .toLowerCase()
             .replace(/[^a-z0-9]/g, "_")
@@ -82,7 +81,7 @@ const ViewForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!form) return;
+    if (!form || !form.table_name) return;
     
     setSubmitting(true);
     
@@ -91,7 +90,6 @@ const ViewForm: React.FC = () => {
       const { error } = await supabase
         .from(form.table_name)
         .insert({
-          form_id: form.id,
           ...formValues
         });
       

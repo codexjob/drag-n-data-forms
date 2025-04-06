@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { FormElement } from "@/lib/formElementTypes";
+import { Json } from "@/integrations/supabase/types";
 
 export interface FormData {
   id?: string;
@@ -39,13 +40,16 @@ export const saveForm = async (title: string, description: string, elements: For
     // Préparer les éléments avec des noms de colonnes
     const schemaElements = elements.map(elementToColumn);
     
+    // Convertir schemaElements en JSON avant insertion
+    const schemaJson = JSON.parse(JSON.stringify(schemaElements)) as Json;
+    
     // Insérer dans Supabase
     const { data, error } = await supabase
       .from('forms')
       .insert({
         title,
         description,
-        schema: schemaElements,
+        schema: schemaJson,
         table_name: tableName,
         published: false
       })
@@ -97,7 +101,11 @@ export const fetchForms = async (): Promise<FormData[]> => {
       return [];
     }
 
-    return data || [];
+    // Convertir les données de Supabase en FormData[]
+    return (data || []).map(form => ({
+      ...form,
+      schema: form.schema as unknown as FormElement[]
+    }));
   } catch (error) {
     console.error("Erreur lors de la récupération des formulaires:", error);
     return [];
@@ -118,7 +126,11 @@ export const fetchFormById = async (formId: string): Promise<FormData | null> =>
       return null;
     }
 
-    return data;
+    // Convertir les données de Supabase en FormData
+    return data ? {
+      ...data,
+      schema: data.schema as unknown as FormElement[]
+    } : null;
   } catch (error) {
     console.error("Erreur lors de la récupération du formulaire:", error);
     return null;

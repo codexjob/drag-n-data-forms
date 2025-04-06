@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { fetchFormById, FormData } from '@/services/formService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ArrowLeft, DownloadIcon, Loader2 } from 'lucide-react';
+import { ArrowLeft, DownloadIcon, Loader2, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { FormElement } from '@/lib/formElementTypes';
 
@@ -37,17 +37,19 @@ const FormResponses: React.FC = () => {
         
         setForm(formData);
         
-        // Charger les réponses
-        const { data, error } = await supabase
-          .from(formData.table_name)
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          console.error("Erreur lors du chargement des réponses:", error);
-          toast.error("Erreur lors du chargement des réponses");
-        } else {
-          setResponses(data || []);
+        // Charger les réponses - assurez-vous que table_name est valide
+        if (formData.table_name) {
+          const { data, error } = await supabase
+            .from(formData.table_name)
+            .select('*')
+            .order('created_at', { ascending: false });
+          
+          if (error) {
+            console.error("Erreur lors du chargement des réponses:", error);
+            toast.error("Erreur lors du chargement des réponses");
+          } else {
+            setResponses(data || []);
+          }
         }
       } catch (error) {
         console.error("Erreur:", error);
@@ -65,7 +67,7 @@ const FormResponses: React.FC = () => {
     
     try {
       // Obtenir les en-têtes (noms des colonnes)
-      const schema = form.schema as unknown as FormElement[];
+      const schema = form.schema as FormElement[];
       const headers = ['ID', 'Date de soumission', ...schema.map(el => el.label)];
       
       // Préparer les données
@@ -151,7 +153,7 @@ const FormResponses: React.FC = () => {
     );
   }
 
-  const schema = form.schema as unknown as FormElement[];
+  const schema = form.schema as FormElement[];
 
   return (
     <div className="min-h-screen bg-dragndrop-lightgray">

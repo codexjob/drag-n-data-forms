@@ -1,4 +1,3 @@
-
 export interface FormElement {
   id: string;
   type: FormElementType;
@@ -13,6 +12,7 @@ export interface FormElement {
     max?: number;
     pattern?: string;
   };
+  columnName?: string;
 }
 
 export interface FormElementOption {
