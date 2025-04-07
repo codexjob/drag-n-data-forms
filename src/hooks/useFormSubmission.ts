@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormData } from '@/services/formService';
 import { FormElement } from '@/lib/formElementTypes';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +32,13 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
     });
     setFormValues(initialValues);
   };
+
+  // Re-initialize form values when form changes
+  useEffect(() => {
+    if (form && form.schema) {
+      initializeFormValues(form.schema);
+    }
+  }, [form]);
 
   const handleChange = (name: string, value: any) => {
     setFormValues(prev => ({

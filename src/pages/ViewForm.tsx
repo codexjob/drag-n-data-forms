@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchFormById, FormData } from '@/services/formService';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, Share2, ArrowLeft } from 'lucide-react';
+import { Loader2, Copy, Share2, ArrowLeft, List } from 'lucide-react';
 import FormElementRenderer from '@/components/form/FormElementRenderer';
 import FormHeader from '@/components/form/FormHeader';
 import FormSubmissionSuccess from '@/components/form/FormSubmissionSuccess';
@@ -104,7 +104,7 @@ const ViewForm: React.FC = () => {
               title={form.title} 
               description={form.description} 
             />
-            <div className="relative">
+            <div className="flex items-center space-x-2">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -114,6 +114,19 @@ const ViewForm: React.FC = () => {
                 <Share2 className="h-4 w-4 mr-2" />
                 Partager
               </Button>
+              
+              {form.published && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  asChild
+                >
+                  <Link to={`/responses/${form.id}`}>
+                    <List className="h-4 w-4 mr-2" />
+                    Réponses
+                  </Link>
+                </Button>
+              )}
               
               {showShareOptions && (
                 <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-md border border-dragndrop-gray p-2 z-10 w-40">
