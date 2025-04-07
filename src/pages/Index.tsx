@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { fetchForms, FormData, publishForm } from '@/services/formService';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Edit, Eye, List, Plus, Settings } from 'lucide-react';
+import { CalendarDays, Copy, Edit, Eye, List, Plus, Settings, Share2 } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from 'sonner';
 
@@ -41,6 +41,13 @@ const Index = () => {
       console.error("Erreur lors de la publication:", error);
       toast.error("Erreur lors de la publication du formulaire");
     }
+  };
+
+  const copyFormLink = (formId: string) => {
+    const url = `${window.location.origin}/form/${formId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success("Lien du formulaire copié dans le presse-papier");
+    });
   };
 
   const handleNewForm = () => {
@@ -137,14 +144,16 @@ const Index = () => {
                     </Button>
                   )}
                   
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => navigate(`/form/${form.id}/config`)}
-                  >
-                    <Settings className="h-4 w-4 mr-1" />
-                    Config
-                  </Button>
+                  {form.published && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => copyFormLink(form.id || '')}
+                    >
+                      <Copy className="h-4 w-4 mr-1" />
+                      Copier lien
+                    </Button>
+                  )}
                   
                   {form.published && (
                     <Button 
@@ -156,6 +165,25 @@ const Index = () => {
                       Réponses
                     </Button>
                   )}
+                  
+                  {form.published && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                    >
+                      <Share2 className="h-4 w-4 mr-1" />
+                      Partager
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate(`/form/${form.id}/config`)}
+                  >
+                    <Settings className="h-4 w-4 mr-1" />
+                    Config
+                  </Button>
                 </CardFooter>
               </Card>
             ))}

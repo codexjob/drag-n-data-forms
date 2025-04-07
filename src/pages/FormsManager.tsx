@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchForms, FormData, publishForm } from '@/services/formService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ArrowLeft, CalendarDays, Copy, Edit, Eye, List, Plus, Settings } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Copy, Edit, Eye, List, Plus, Settings, Share2 } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Link, useNavigate } from 'react-router-dom';
@@ -152,6 +152,16 @@ const FormsManager: React.FC = () => {
                     >
                       <Copy className="h-4 w-4 mr-1" />
                       Copier lien
+                    </Button>
+                  )}
+                  
+                  {form.published && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                    >
+                      <Share2 className="h-4 w-4 mr-1" />
+                      Partager
                     </Button>
                   )}
                   
