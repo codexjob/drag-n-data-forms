@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchFormById, FormData } from '@/services/formService';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, Share2 } from 'lucide-react';
+import { Loader2, Copy, Share2, ArrowLeft } from 'lucide-react';
 import FormElementRenderer from '@/components/form/FormElementRenderer';
 import FormHeader from '@/components/form/FormHeader';
 import FormSubmissionSuccess from '@/components/form/FormSubmissionSuccess';
@@ -23,14 +23,18 @@ const ViewForm: React.FC = () => {
       if (!id) return;
       
       setLoading(true);
-      const formData = await fetchFormById(id);
-      
-      if (formData) {
-        setForm(formData);
-        initializeFormValues(formData.schema);
+      try {
+        const formData = await fetchFormById(id);
+        
+        if (formData) {
+          setForm(formData);
+          initializeFormValues(formData.schema);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement du formulaire:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     loadForm();
@@ -51,6 +55,7 @@ const ViewForm: React.FC = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
       toast.success("Lien du formulaire copié dans le presse-papier");
+      setShowShareOptions(false);
     });
   };
 
@@ -83,8 +88,18 @@ const ViewForm: React.FC = () => {
     <div className="min-h-screen bg-dragndrop-lightgray">
       <div className="container mx-auto py-6 px-4">
         <div className="bg-white rounded-lg border border-dragndrop-gray p-6 max-w-3xl mx-auto">
+          {/* Header with navigation */}
+          <div className="mb-4">
+            <Button variant="outline" asChild className="mb-4">
+              <Link to="/">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Retour aux formulaires
+              </Link>
+            </Button>
+          </div>
+
           {/* En-tête avec options de partage */}
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between items-start mb-6">
             <FormHeader 
               title={form.title} 
               description={form.description} 
@@ -101,7 +116,7 @@ const ViewForm: React.FC = () => {
               </Button>
               
               {showShareOptions && (
-                <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-md border border-dragndrop-gray p-2 z-10">
+                <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-md border border-dragndrop-gray p-2 z-10 w-40">
                   <Button 
                     variant="ghost" 
                     size="sm"
