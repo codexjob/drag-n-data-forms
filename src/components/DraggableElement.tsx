@@ -23,6 +23,7 @@ const DraggableElement: React.FC<DraggableElementProps> = ({ type, label }) => {
       className={`flex items-center p-1.5 mb-0.5 rounded-md cursor-grab ${
         isDragging ? 'opacity-50' : ''
       } hover:bg-dragndrop-lightgray border border-dragndrop-gray transition-all`}
+      data-element-type={type}
     >
       <div className="p-1 mr-2 bg-dragndrop-lightgray rounded-md text-dragndrop-primary text-xs">
         {formElementIcons[type]}
