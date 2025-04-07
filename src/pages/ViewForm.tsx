@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchFormById, FormData } from '@/services/formService';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ const ViewForm: React.FC = () => {
   const [form, setForm] = useState<FormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showShareOptions, setShowShareOptions] = useState(false);
+  const shareOptionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadForm = async () => {
@@ -39,6 +40,20 @@ const ViewForm: React.FC = () => {
 
     loadForm();
   }, [id]);
+
+  // Close share options when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareOptionsRef.current && !shareOptionsRef.current.contains(event.target as Node)) {
+        setShowShareOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [shareOptionsRef]);
 
   const {
     formValues,
@@ -104,7 +119,7 @@ const ViewForm: React.FC = () => {
               title={form.title} 
               description={form.description} 
             />
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 relative">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -129,7 +144,10 @@ const ViewForm: React.FC = () => {
               )}
               
               {showShareOptions && (
-                <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-md border border-dragndrop-gray p-2 z-10 w-40">
+                <div 
+                  ref={shareOptionsRef}
+                  className="absolute right-0 top-10 mt-2 bg-white shadow-lg rounded-md border border-dragndrop-gray p-2 z-10 w-40"
+                >
                   <Button 
                     variant="ghost" 
                     size="sm"

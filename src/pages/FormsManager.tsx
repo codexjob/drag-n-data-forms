@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchForms, FormData, publishForm } from '@/services/formService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ArrowLeft, BookOpen, CalendarDays, Check, Copy, Edit, Eye, List, Plus, Settings } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ArrowLeft, CalendarDays, Copy, Edit, Eye, List, Plus, Settings } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Link, useNavigate } from 'react-router-dom';
@@ -60,9 +59,9 @@ const FormsManager: React.FC = () => {
       <div className="container mx-auto py-6 px-4">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-dragndrop-text">Gestionnaire de Formulaires</h1>
+            <h1 className="text-2xl font-bold text-dragndrop-text">Mes Formulaires</h1>
             <p className="text-dragndrop-darkgray">
-              Gérez vos formulaires créés et publiés
+              Gérez vos formulaires et accédez aux réponses
             </p>
           </div>
           <Button 
