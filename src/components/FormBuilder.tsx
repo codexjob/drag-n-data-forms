@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import FormElementsList from './FormElementsList';
@@ -21,8 +20,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { saveForm } from '@/services/formService';
-import { useNavigate } from 'react-router-dom';
+import { saveForm, fetchFormById } from '@/services/formService';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const FormBuilder: React.FC = () => {
   const [formElements, setFormElements] = useState<FormElement[]>([]);
@@ -31,12 +30,38 @@ const FormBuilder: React.FC = () => {
   const [formDescription, setFormDescription] = useState<string>("Description de votre formulaire");
   const [showDbDialog, setShowDbDialog] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { id } = useParams();
+  
+  useEffect(() => {
+    const loadForm = async () => {
+      if (!id || id === 'new') return;
+      
+      setLoading(true);
+      try {
+        const form = await fetchFormById(id);
+        if (form) {
+          setFormTitle(form.title);
+          setFormDescription(form.description || "");
+          setFormElements(form.schema);
+        } else {
+          toast.error("Formulaire non trouvé");
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement du formulaire:", error);
+        toast.error("Erreur lors du chargement du formulaire");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadForm();
+  }, [id]);
 
   const selectedElement = formElements.find((element) => element.id === selectedElementId) || null;
 
   const handleAddElement = (element: FormElement) => {
-    // Correction ici : on utilise l'état précédent au lieu d'une référence directe à formElements
     setFormElements(prevElements => [...prevElements, element]);
     setSelectedElementId(element.id);
     toast.success("Élément ajouté avec succès");
@@ -79,7 +104,7 @@ const FormBuilder: React.FC = () => {
     try {
       setSaving(true);
       
-      const formId = await saveForm(formTitle, formDescription, formElements);
+      const formId = await saveForm(formTitle, formDescription, formElements, id !== 'new' ? id : undefined);
       
       if (formId) {
         toast.success("Formulaire sauvegardé avec succès");
@@ -151,14 +176,24 @@ const FormBuilder: React.FC = () => {
     return schema;
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-dragndrop-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-dragndrop-text">Générateur de Formulaire</h1>
+            <h1 className="text-2xl font-bold text-dragndrop-text">
+              {id && id !== 'new' ? "Modifier le Formulaire" : "Nouveau Formulaire"}
+            </h1>
             <p className="text-dragndrop-darkgray">
-              Créez votre formulaire en glissant-déposant des éléments
+              {id && id !== 'new' ? "Modifiez votre formulaire existant" : "Créez votre formulaire en glissant-déposant des éléments"}
             </p>
           </div>
           <Button 

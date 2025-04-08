@@ -37,6 +37,7 @@ export const saveForm = async (title: string, description: string, elements: For
   try {
     // Si on a un formId, c'est une mise à jour
     if (formId) {
+      console.log("Mise à jour du formulaire:", formId);
       const { data: existingForm } = await supabase
         .from('forms')
         .select('table_name, published')
@@ -118,13 +119,18 @@ export const publishForm = async (formId: string): Promise<boolean> => {
     // Fetch the form first to check its schema and table_name
     const { data: form, error: fetchError } = await supabase
       .from('forms')
-      .select('schema, table_name')
+      .select('schema, table_name, published')
       .eq('id', formId)
       .single();
     
     if (fetchError) {
       console.error("Erreur lors de la récupération du formulaire:", fetchError);
       return false;
+    }
+    
+    // If already published, just return true
+    if (form?.published) {
+      return true;
     }
     
     // Invoke the RPC function to create the responses table
@@ -186,6 +192,7 @@ export const fetchForms = async (): Promise<FormData[]> => {
 // Récupérer un formulaire par son ID
 export const fetchFormById = async (formId: string): Promise<FormData | null> => {
   try {
+    console.log("Fetching form with ID:", formId);
     const { data, error } = await supabase
       .from('forms')
       .select('*')
@@ -197,6 +204,8 @@ export const fetchFormById = async (formId: string): Promise<FormData | null> =>
       return null;
     }
 
+    console.log("Form data retrieved:", data);
+    
     // Convertir les données de Supabase en FormData
     return data ? {
       ...data,
