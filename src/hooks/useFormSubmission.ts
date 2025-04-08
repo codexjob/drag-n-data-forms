@@ -26,6 +26,10 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
       
       if (element.type === 'checkbox' && element.options) {
         initialValues[columnName] = [];
+      } else if (element.type === 'date') {
+        initialValues[columnName] = '';
+      } else if (element.type === 'number') {
+        initialValues[columnName] = '';
       } else {
         initialValues[columnName] = '';
       }
@@ -67,11 +71,18 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!form || !form.table_name) return;
+    if (!form || !form.table_name) {
+      toast.error("Impossible de soumettre le formulaire : table non spécifiée");
+      return;
+    }
     
     setSubmitting(true);
     
     try {
+      // Debug log
+      console.log("Soumission des données :", formValues);
+      console.log("Table cible :", form.table_name);
+      
       // Submit form data to the dynamic table
       const { error } = await supabase
         .from(form.table_name as any)
@@ -79,7 +90,7 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
       
       if (error) {
         console.error("Erreur lors de la soumission du formulaire:", error);
-        toast.error("Erreur lors de la soumission du formulaire");
+        toast.error(`Erreur lors de la soumission du formulaire: ${error.message}`);
       } else {
         toast.success("Formulaire soumis avec succès");
         setSubmitted(true);
