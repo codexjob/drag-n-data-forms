@@ -34,6 +34,7 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
         initialValues[columnName] = '';
       }
     });
+    console.log("Initialized form values:", initialValues);
     setFormValues(initialValues);
   };
 
@@ -46,6 +47,7 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
   }, [form]);
 
   const handleChange = (name: string, value: any) => {
+    console.log(`Field changed: ${name} = `, value);
     setFormValues(prev => ({
       ...prev,
       [name]: value
@@ -84,10 +86,16 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
       console.log("Soumission des données :", formValues);
       console.log("Table cible :", form.table_name);
       
+      // Add form_id to the submission data
+      const submissionData = {
+        ...formValues,
+        form_id: form.id
+      };
+      
       // Submit form data to the dynamic table
       const { error } = await supabase
         .from(form.table_name as any)
-        .insert(formValues as any);
+        .insert(submissionData as any);
       
       if (error) {
         console.error("Erreur lors de la soumission du formulaire:", error);

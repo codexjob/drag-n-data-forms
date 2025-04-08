@@ -45,7 +45,7 @@ export const saveForm = async (title: string, description: string, elements: For
         .from('forms')
         .select('table_name, published, schema')
         .eq('id', formId)
-        .single();
+        .maybeSingle();  // Changed to maybeSingle instead of single
 
       if (checkError) {
         console.error("Erreur lors de la vérification du formulaire:", checkError);
@@ -65,7 +65,7 @@ export const saveForm = async (title: string, description: string, elements: For
       
       console.log("Schema JSON pour mise à jour:", schemaJson);
       
-      // Mettre à jour le formulaire existant sans utiliser .single() dans la requête de mise à jour
+      // Mettre à jour le formulaire existant
       const { error: updateError } = await supabase
         .from('forms')
         .update({
@@ -130,7 +130,7 @@ export const publishForm = async (formId: string): Promise<boolean> => {
       .from('forms')
       .select('schema, table_name, published')
       .eq('id', formId)
-      .single();
+      .maybeSingle(); // Changed to maybeSingle
     
     if (fetchError) {
       console.error("Erreur lors de la récupération du formulaire:", fetchError);
@@ -142,18 +142,31 @@ export const publishForm = async (formId: string): Promise<boolean> => {
       return true;
     }
     
-    // Invoke the RPC function to create the responses table
+    // Create the responses table manually since trigger was removed
     if (form) {
-      const { error: rpcError } = await supabase.rpc('create_form_responses_table', {
-        form_id: formId,
-        form_table_name: form.table_name,
-        form_schema: form.schema
-      });
-      
-      if (rpcError) {
-        console.error("Erreur lors de la création de la table de réponses:", rpcError);
+      try {
+        console.log("Création manuelle de la table de réponses pour:", form.table_name);
+        
+        // Invoke the RPC function to create the responses table
+        const { error: rpcError } = await supabase.rpc('create_form_responses_table', {
+          form_id: formId,
+          form_table_name: form.table_name,
+          form_schema: form.schema
+        });
+        
+        if (rpcError) {
+          console.error("Erreur lors de la création de la table de réponses:", rpcError);
+          return false;
+        }
+        
+        console.log("Table de réponses créée avec succès pour:", form.table_name);
+      } catch (tableErr) {
+        console.error("Exception lors de la création de la table:", tableErr);
         return false;
       }
+    } else {
+      console.error("Formulaire non trouvé pour création de table");
+      return false;
     }
     
     // Update the form as published
@@ -206,7 +219,7 @@ export const fetchFormById = async (formId: string): Promise<FormData | null> =>
       .from('forms')
       .select('*')
       .eq('id', formId)
-      .single();
+      .maybeSingle(); // Changed to maybeSingle
 
     if (error) {
       console.error("Erreur lors de la récupération du formulaire:", error);
