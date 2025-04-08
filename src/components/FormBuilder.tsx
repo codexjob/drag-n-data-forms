@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -31,6 +32,7 @@ const FormBuilder: React.FC = () => {
   const [showDbDialog, setShowDbDialog] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [formId, setFormId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const { id } = useParams();
   
@@ -40,8 +42,11 @@ const FormBuilder: React.FC = () => {
       
       setLoading(true);
       try {
+        console.log("Chargement du formulaire avec l'ID:", id);
         const form = await fetchFormById(id);
         if (form) {
+          console.log("Formulaire chargé avec succès:", form);
+          setFormId(id);
           setFormTitle(form.title);
           setFormDescription(form.description || "");
           setFormElements(form.schema);
@@ -104,10 +109,23 @@ const FormBuilder: React.FC = () => {
     try {
       setSaving(true);
       
-      const formId = await saveForm(formTitle, formDescription, formElements, id !== 'new' ? id : undefined);
+      console.log("Sauvegarde du formulaire avec les données:", {
+        title: formTitle,
+        description: formDescription,
+        elements: formElements,
+        formId: formId || (id !== 'new' ? id : undefined)
+      });
       
-      if (formId) {
+      const savedFormId = await saveForm(
+        formTitle, 
+        formDescription, 
+        formElements, 
+        formId || (id !== 'new' ? id : undefined)
+      );
+      
+      if (savedFormId) {
         toast.success("Formulaire sauvegardé avec succès");
+        setFormId(savedFormId);
         navigate('/forms');
       } else {
         toast.error("Erreur lors de la sauvegarde du formulaire");

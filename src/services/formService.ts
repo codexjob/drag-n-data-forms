@@ -38,11 +38,12 @@ export const saveForm = async (title: string, description: string, elements: For
     // Si on a un formId, c'est une mise à jour
     if (formId) {
       console.log("Mise à jour du formulaire:", formId);
+      console.log("Nouveaux éléments:", elements);
       
       // Vérifier si le formulaire existe
       const { data: existingForm, error: checkError } = await supabase
         .from('forms')
-        .select('table_name, published')
+        .select('table_name, published, schema')
         .eq('id', formId)
         .single();
 
@@ -62,6 +63,8 @@ export const saveForm = async (title: string, description: string, elements: For
       // Convertir schemaElements en JSON avant insertion
       const schemaJson = safeJsonConvert(schemaElements);
       
+      console.log("Schema JSON pour mise à jour:", schemaJson);
+      
       // Mettre à jour le formulaire existant sans utiliser .single() dans la requête de mise à jour
       const { error: updateError } = await supabase
         .from('forms')
@@ -76,7 +79,8 @@ export const saveForm = async (title: string, description: string, elements: For
         console.error("Erreur lors de la mise à jour du formulaire:", updateError);
         return null;
       }
-
+      
+      console.log("Mise à jour réussie pour le formulaire:", formId);
       return formId;
     } else {
       // Générer un nom de table unique basé sur le titre

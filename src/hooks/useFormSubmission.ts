@@ -40,6 +40,7 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
   // Re-initialize form values when form changes
   useEffect(() => {
     if (form && form.schema) {
+      console.log("Initializing form values with schema:", form.schema);
       initializeFormValues(form.schema);
     }
   }, [form]);
