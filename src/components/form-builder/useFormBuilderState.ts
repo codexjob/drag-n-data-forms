@@ -16,7 +16,16 @@ export const useFormBuilderState = (formId?: string) => {
   
   useEffect(() => {
     const loadForm = async () => {
-      if (!formId || formId === 'new') return;
+      if (!formId || formId === 'new') {
+        console.log("Creating new form, no loading needed");
+        // Reset state for new form
+        setFormElements([]);
+        setSelectedElementId(null);
+        setFormTitle("Nouveau Formulaire");
+        setFormDescription("Description de votre formulaire");
+        setCurrentFormId(undefined);
+        return;
+      }
       
       setLoading(true);
       try {
@@ -96,7 +105,7 @@ export const useFormBuilderState = (formId?: string) => {
       
       const savedFormId = await saveForm(
         formTitle, 
-        formDescription, 
+        description: formDescription, 
         formElements, 
         currentFormId || (formId !== 'new' ? formId : undefined)
       );

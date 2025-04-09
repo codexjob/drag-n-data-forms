@@ -14,6 +14,8 @@ const FormBuilder: React.FC = () => {
   const navigate = useNavigate();
   const isEditing = id && id !== 'new';
   
+  console.log("FormBuilder rendering with ID:", id);
+  
   const {
     formElements,
     selectedElementId,
@@ -36,9 +38,13 @@ const FormBuilder: React.FC = () => {
   } = useFormBuilderState(id);
 
   const completeFormSave = async () => {
+    console.log("Attempting to save form...");
     const savedId = await handleFormSave();
     if (savedId) {
+      console.log("Form saved successfully, navigating to forms list");
       navigate('/forms');
+    } else {
+      console.error("Failed to save form");
     }
   };
 
