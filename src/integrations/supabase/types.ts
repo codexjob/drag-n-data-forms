@@ -9,6 +9,35 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      data: {
+        Row: {
+          created_at: string
+          form_data: Json
+          form_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          form_data: Json
+          form_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          form_data?: Json
+          form_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forms: {
         Row: {
           created_at: string

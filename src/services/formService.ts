@@ -89,6 +89,9 @@ export const saveForm = async (title: string, description: string, elements: For
       // Convertir schemaElements en JSON avant insertion
       const schemaJson = safeJsonConvert(schemaElements);
       
+      // Generate a simple table name (not used anymore but kept for backwards compatibility)
+      const table_name = `form_${Date.now()}`;
+      
       // Insérer dans Supabase
       const { data, error } = await supabase
         .from('forms')
@@ -96,6 +99,7 @@ export const saveForm = async (title: string, description: string, elements: For
           title,
           description,
           schema: schemaJson,
+          table_name, // Required by schema but not used anymore
           published: true // Auto-publish since we're not creating custom tables anymore
         })
         .select()
