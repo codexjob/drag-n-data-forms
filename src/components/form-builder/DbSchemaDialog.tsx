@@ -11,12 +11,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FormElement } from '@/lib/formElementTypes';
 
 interface DbSchemaDialogProps {
   showDbDialog: boolean;
   setShowDbDialog: (show: boolean) => void;
-  generatePostgresSchema: () => string;
+  formTitle: string;
   handleFormSave: () => Promise<void>;
   saving: boolean;
 }
@@ -24,7 +23,7 @@ interface DbSchemaDialogProps {
 const DbSchemaDialog: React.FC<DbSchemaDialogProps> = ({
   showDbDialog,
   setShowDbDialog,
-  generatePostgresSchema,
+  formTitle,
   handleFormSave,
   saving
 }) => {
@@ -34,14 +33,24 @@ const DbSchemaDialog: React.FC<DbSchemaDialogProps> = ({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center">
             <Database className="mr-2 h-5 w-5 text-dragndrop-primary" />
-            Structure PostgreSQL générée
+            Enregistrer le formulaire
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Cette structure sera utilisée pour créer une table dans votre base de données Supabase. Voulez-vous enregistrer ce formulaire?
+            Ce formulaire sera enregistré et les données soumises seront stockées dans la table "data". Voulez-vous enregistrer ce formulaire?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="bg-dragndrop-text text-white rounded-md p-4 my-4 overflow-auto max-h-80">
-          <pre className="text-sm font-mono">{generatePostgresSchema()}</pre>
+          <pre className="text-sm font-mono">
+{`-- Les données seront stockées dans la table "data" existante
+-- Structure de la table:
+
+TABLE data (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+  form_id UUID REFERENCES forms(id),
+  form_data JSONB -- Les données du formulaire "${formTitle}" seront stockées ici
+);`}
+          </pre>
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>

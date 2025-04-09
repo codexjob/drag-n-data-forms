@@ -72,61 +72,6 @@ export const useFormBuilderState = (formId?: string) => {
     setFormElements(newElements);
   };
 
-  const generatePostgresSchema = () => {
-    if (formElements.length === 0) return "";
-
-    const tableName = formTitle
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "_")
-      .replace(/_+/g, "_")
-      .replace(/^_|_$/g, "");
-
-    let schema = `CREATE TABLE ${tableName} (\n`;
-    schema += `  id SERIAL PRIMARY KEY,\n`;
-    
-    formElements.forEach((element, index) => {
-      const columnName = element.label
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_|_$/g, "");
-      
-      let columnType = "VARCHAR(255)";
-      
-      switch (element.type) {
-        case "textarea":
-          columnType = "TEXT";
-          break;
-        case "number":
-          columnType = "NUMERIC";
-          break;
-        case "date":
-          columnType = "DATE";
-          break;
-        case "checkbox":
-          columnType = "BOOLEAN[]";
-          break;
-        default:
-          columnType = "VARCHAR(255)";
-      }
-      
-      schema += `  ${columnName} ${columnType}`;
-      if (element.required) {
-        schema += " NOT NULL";
-      }
-      
-      if (index < formElements.length - 1) {
-        schema += ",\n";
-      } else {
-        schema += "\n";
-      }
-    });
-    
-    schema += `);`;
-    
-    return schema;
-  };
-
   const handleSaveForm = () => {
     if (formElements.length === 0) {
       toast.error("Votre formulaire est vide. Ajoutez des éléments avant de sauvegarder.");
@@ -137,7 +82,7 @@ export const useFormBuilderState = (formId?: string) => {
   };
 
   const handleFormSave = async () => {
-    if (formElements.length === 0) return;
+    if (formElements.length === 0) return null;
     
     try {
       setSaving(true);
@@ -193,7 +138,6 @@ export const useFormBuilderState = (formId?: string) => {
     handleDeleteElement,
     handleMoveElement,
     handleSaveForm,
-    handleFormSave,
-    generatePostgresSchema
+    handleFormSave
   };
 };

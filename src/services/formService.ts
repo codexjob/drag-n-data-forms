@@ -8,7 +8,7 @@ export interface FormData {
   title: string;
   description: string;
   schema: FormElement[];
-  table_name: string;
+  table_name?: string; // Make this optional as we'll be using a single table
   created_at?: string;
   published: boolean;
 }
@@ -43,9 +43,9 @@ export const saveForm = async (title: string, description: string, elements: For
       // Vérifier si le formulaire existe
       const { data: existingForm, error: checkError } = await supabase
         .from('forms')
-        .select('table_name, published, schema')
+        .select('published, schema')
         .eq('id', formId)
-        .maybeSingle();  // Changed to maybeSingle instead of single
+        .maybeSingle();
 
       if (checkError) {
         console.error("Erreur lors de la vérification du formulaire:", checkError);
@@ -83,13 +83,6 @@ export const saveForm = async (title: string, description: string, elements: For
       console.log("Mise à jour réussie pour le formulaire:", formId);
       return formId;
     } else {
-      // Générer un nom de table unique basé sur le titre
-      const tableName = `form_${title
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_|_$/g, "")}_${Date.now().toString().slice(-6)}`;
-      
       // Préparer les éléments avec des noms de colonnes
       const schemaElements = elements.map(elementToColumn);
       
@@ -103,8 +96,7 @@ export const saveForm = async (title: string, description: string, elements: For
           title,
           description,
           schema: schemaJson,
-          table_name: tableName,
-          published: false
+          published: true // Auto-publish since we're not creating custom tables anymore
         })
         .select()
         .single();
@@ -122,53 +114,9 @@ export const saveForm = async (title: string, description: string, elements: For
   }
 };
 
-// Publier un formulaire (ce qui déclenche la création de la table pour les réponses)
+// Publier un formulaire (simplifié car nous n'avons plus besoin de créer de table)
 export const publishForm = async (formId: string): Promise<boolean> => {
   try {
-    // Fetch the form first to check its schema and table_name
-    const { data: form, error: fetchError } = await supabase
-      .from('forms')
-      .select('schema, table_name, published')
-      .eq('id', formId)
-      .maybeSingle(); // Changed to maybeSingle
-    
-    if (fetchError) {
-      console.error("Erreur lors de la récupération du formulaire:", fetchError);
-      return false;
-    }
-    
-    // If already published, just return true
-    if (form?.published) {
-      return true;
-    }
-    
-    // Create the responses table manually since trigger was removed
-    if (form) {
-      try {
-        console.log("Création manuelle de la table de réponses pour:", form.table_name);
-        
-        // Invoke the RPC function to create the responses table
-        const { error: rpcError } = await supabase.rpc('create_form_responses_table', {
-          form_id: formId,
-          form_table_name: form.table_name,
-          form_schema: form.schema
-        });
-        
-        if (rpcError) {
-          console.error("Erreur lors de la création de la table de réponses:", rpcError);
-          return false;
-        }
-        
-        console.log("Table de réponses créée avec succès pour:", form.table_name);
-      } catch (tableErr) {
-        console.error("Exception lors de la création de la table:", tableErr);
-        return false;
-      }
-    } else {
-      console.error("Formulaire non trouvé pour création de table");
-      return false;
-    }
-    
     // Update the form as published
     const { error: updateError } = await supabase
       .from('forms')
@@ -219,7 +167,7 @@ export const fetchFormById = async (formId: string): Promise<FormData | null> =>
       .from('forms')
       .select('*')
       .eq('id', formId)
-      .maybeSingle(); // Changed to maybeSingle
+      .maybeSingle();
 
     if (error) {
       console.error("Erreur lors de la récupération du formulaire:", error);

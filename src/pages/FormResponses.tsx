@@ -12,7 +12,8 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 interface FormResponse {
   id: string;
   created_at: string;
-  [key: string]: any;
+  form_id: string;
+  form_data: Record<string, any>;
 }
 
 const FormResponses: React.FC = () => {
@@ -38,21 +39,18 @@ const FormResponses: React.FC = () => {
         
         setForm(formData);
         
-        // Charger les réponses - assurez-vous que table_name est valide
-        if (formData.table_name) {
-          // Use the generic query method instead of the typed one
-          const { data, error } = await supabase
-            .from(formData.table_name as any)
-            .select('*')
-            .order('created_at', { ascending: false });
-          
-          if (error) {
-            console.error("Erreur lors du chargement des réponses:", error);
-            toast.error("Erreur lors du chargement des réponses");
-          } else if (data) {
-            // Use double type assertion to safely convert to FormResponse[]
-            setResponses(data as unknown as FormResponse[]);
-          }
+        // Charger les réponses depuis la table "data"
+        const { data, error } = await supabase
+          .from('data')
+          .select('*')
+          .eq('form_id', id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error("Erreur lors du chargement des réponses:", error);
+          toast.error("Erreur lors du chargement des réponses");
+        } else if (data) {
+          setResponses(data as FormResponse[]);
         }
       } catch (error) {
         console.error("Erreur:", error);
@@ -77,6 +75,8 @@ const FormResponses: React.FC = () => {
       const csvRows = [
         headers.join(','), // En-têtes
         ...responses.map(response => {
+          const formData = response.form_data;
+          
           const rowValues = [
             response.id,
             new Date(response.created_at).toLocaleString(),
@@ -87,7 +87,7 @@ const FormResponses: React.FC = () => {
                 .replace(/_+/g, "_")
                 .replace(/^_|_$/g, "");
               
-              let value = response[columnName];
+              let value = formData[columnName];
               
               // Formater la valeur selon le type
               if (Array.isArray(value)) {
@@ -221,7 +221,8 @@ const FormResponses: React.FC = () => {
                           .replace(/_+/g, "_")
                           .replace(/^_|_$/g, "");
                         
-                        let value = response[columnName];
+                        const formData = response.form_data || {};
+                        let value = formData[columnName];
                         
                         // Formater la valeur selon le type
                         if (Array.isArray(value)) {

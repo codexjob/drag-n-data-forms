@@ -32,8 +32,7 @@ const FormBuilder: React.FC = () => {
     handleDeleteElement,
     handleMoveElement,
     handleSaveForm,
-    handleFormSave,
-    generatePostgresSchema
+    handleFormSave
   } = useFormBuilderState(id);
 
   const completeFormSave = async () => {
@@ -84,7 +83,7 @@ const FormBuilder: React.FC = () => {
         <DbSchemaDialog
           showDbDialog={showDbDialog}
           setShowDbDialog={setShowDbDialog}
-          generatePostgresSchema={generatePostgresSchema}
+          formTitle={formTitle}
           handleFormSave={completeFormSave}
           saving={saving}
         />

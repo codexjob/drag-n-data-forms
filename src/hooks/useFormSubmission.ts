@@ -74,8 +74,8 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!form || !form.table_name) {
-      toast.error("Impossible de soumettre le formulaire : table non spécifiée");
+    if (!form || !form.id) {
+      toast.error("Impossible de soumettre le formulaire : identifiant non spécifié");
       return;
     }
     
@@ -84,18 +84,17 @@ export const useFormSubmission = ({ form }: UseFormSubmissionProps) => {
     try {
       // Debug log
       console.log("Soumission des données :", formValues);
-      console.log("Table cible :", form.table_name);
       
-      // Add form_id to the submission data
+      // Prepare the submission data
       const submissionData = {
-        ...formValues,
-        form_id: form.id
+        form_id: form.id,
+        form_data: formValues  // Store all form values as JSON
       };
       
-      // Submit form data to the dynamic table
+      // Submit form data to the single "data" table
       const { error } = await supabase
-        .from(form.table_name as any)
-        .insert(submissionData as any);
+        .from('data')
+        .insert(submissionData);
       
       if (error) {
         console.error("Erreur lors de la soumission du formulaire:", error);
