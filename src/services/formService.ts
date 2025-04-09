@@ -35,10 +35,11 @@ const safeJsonConvert = (schema: FormElement[]): Json => {
 // Sauvegarder un formulaire dans Supabase
 export const saveForm = async (title: string, description: string, elements: FormElement[], formId?: string): Promise<string | null> => {
   try {
+    console.log("Saving form with title:", title, "and elements:", elements);
+    
     // Si on a un formId, c'est une mise à jour
     if (formId) {
       console.log("Mise à jour du formulaire:", formId);
-      console.log("Nouveaux éléments:", elements);
       
       // Vérifier si le formulaire existe
       const { data: existingForm, error: checkError } = await supabase
@@ -83,6 +84,8 @@ export const saveForm = async (title: string, description: string, elements: For
       console.log("Mise à jour réussie pour le formulaire:", formId);
       return formId;
     } else {
+      console.log("Création d'un nouveau formulaire");
+      
       // Préparer les éléments avec des noms de colonnes
       const schemaElements = elements.map(elementToColumn);
       
@@ -91,6 +94,8 @@ export const saveForm = async (title: string, description: string, elements: For
       
       // Generate a simple table name (not used anymore but kept for backwards compatibility)
       const table_name = `form_${Date.now()}`;
+      
+      console.log("Attempting to insert new form with schema:", schemaJson);
       
       // Insérer dans Supabase
       const { data, error } = await supabase
@@ -110,6 +115,7 @@ export const saveForm = async (title: string, description: string, elements: For
         return null;
       }
 
+      console.log("Form created successfully:", data);
       return data?.id || null;
     }
   } catch (error) {
