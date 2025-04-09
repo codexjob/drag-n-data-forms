@@ -36,7 +36,8 @@ const DbSchemaDialog: React.FC<DbSchemaDialogProps> = ({
             Enregistrer le formulaire
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Ce formulaire sera enregistré et les données soumises seront stockées dans la table "data". Voulez-vous enregistrer ce formulaire?
+            Ce formulaire sera enregistré et les données soumises seront stockées dans la table "data". 
+            Voulez-vous enregistrer ce formulaire?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="bg-dragndrop-text text-white rounded-md p-4 my-4 overflow-auto max-h-80">
@@ -49,7 +50,9 @@ TABLE data (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
   form_id UUID REFERENCES forms(id),
   form_data JSONB -- Les données du formulaire "${formTitle}" seront stockées ici
-);`}
+);
+
+-- Le formulaire lui-même sera enregistré dans la table "forms"`}
           </pre>
         </div>
         <AlertDialogFooter>

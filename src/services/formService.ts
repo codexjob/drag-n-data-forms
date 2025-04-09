@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { FormElement } from "@/lib/formElementTypes";
 import { Json } from "@/integrations/supabase/types";
@@ -35,6 +36,8 @@ const safeJsonConvert = (schema: FormElement[]): Json => {
 export const saveForm = async (title: string, description: string, elements: FormElement[], formId?: string): Promise<string | null> => {
   try {
     console.log("Saving form with title:", title, "and elements:", elements);
+    console.log("Form description:", description);
+    console.log("Form ID (if updating):", formId);
     
     // Si on a un formId, c'est une mise à jour
     if (formId) {
@@ -65,22 +68,29 @@ export const saveForm = async (title: string, description: string, elements: For
       
       console.log("Schema JSON pour mise à jour:", schemaJson);
       
+      // Affichage de la requête SQL équivalente
+      console.log("SQL équivalent: UPDATE forms SET title = '" + title + "', description = '" + description + "', schema = '" + JSON.stringify(schemaJson).replace(/'/g, "''") + "' WHERE id = '" + formId + "'");
+      
       // Mettre à jour le formulaire existant
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('forms')
         .update({
           title,
           description,
           schema: schemaJson
         })
-        .eq('id', formId);
+        .eq('id', formId)
+        .select();
 
       if (updateError) {
         console.error("Erreur lors de la mise à jour du formulaire:", updateError);
+        console.error("Code d'erreur:", updateError.code);
+        console.error("Message d'erreur:", updateError.message);
+        console.error("Détails:", updateError.details);
         return null;
       }
       
-      console.log("Mise à jour réussie pour le formulaire:", formId);
+      console.log("Mise à jour réussie pour le formulaire:", updateData);
       return formId;
     } else {
       console.log("Création d'un nouveau formulaire");
@@ -96,6 +106,13 @@ export const saveForm = async (title: string, description: string, elements: For
       
       console.log("Attempting to insert new form with schema:", schemaJson);
       
+      // Affichage de la requête SQL équivalente
+      console.log("SQL équivalent: INSERT INTO forms (title, description, schema, table_name, published) VALUES ('" + 
+                 title + "', '" + 
+                 description + "', '" + 
+                 JSON.stringify(schemaJson).replace(/'/g, "''") + "', '" + 
+                 table_name + "', true)");
+      
       // Insérer dans Supabase
       const { data, error } = await supabase
         .from('forms')
@@ -106,16 +123,18 @@ export const saveForm = async (title: string, description: string, elements: For
           table_name, // Required by schema but not used anymore
           published: true // Auto-publish since we're not creating custom tables anymore
         })
-        .select()
-        .single();
+        .select();
 
       if (error) {
         console.error("Erreur lors de la sauvegarde du formulaire:", error);
+        console.error("Code d'erreur:", error.code);
+        console.error("Message d'erreur:", error.message);
+        console.error("Détails:", error.details);
         return null;
       }
 
       console.log("Form created successfully:", data);
-      return data?.id || null;
+      return data?.[0]?.id || null;
     }
   } catch (error) {
     console.error("Erreur lors de la sauvegarde du formulaire:", error);
