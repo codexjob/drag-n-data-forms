@@ -105,7 +105,7 @@ export const useFormBuilderState = (formId?: string) => {
       
       const savedFormId = await saveForm(
         formTitle, 
-        description: formDescription, 
+        formDescription, 
         formElements, 
         currentFormId || (formId !== 'new' ? formId : undefined)
       );

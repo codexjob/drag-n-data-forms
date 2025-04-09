@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { FormElement } from "@/lib/formElementTypes";
 import { Json } from "@/integrations/supabase/types";
