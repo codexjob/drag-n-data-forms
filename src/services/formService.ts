@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { FormElement } from "@/lib/formElementTypes";
 import { Json } from "@/integrations/supabase/types";
@@ -139,6 +138,58 @@ export const saveForm = async (title: string, description: string, elements: For
   } catch (error) {
     console.error("Erreur lors de la sauvegarde du formulaire:", error);
     return null;
+  }
+};
+
+// Supprimer un formulaire de Supabase
+export const deleteForm = async (formId: string): Promise<boolean> => {
+  try {
+    console.log("Suppression du formulaire avec l'ID:", formId);
+    
+    // Vérifier si le formulaire existe
+    const { data: existingForm, error: checkError } = await supabase
+      .from('forms')
+      .select('published')
+      .eq('id', formId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Erreur lors de la vérification du formulaire:", checkError);
+      return false;
+    }
+
+    if (!existingForm) {
+      console.error("Formulaire non trouvé pour suppression");
+      return false;
+    }
+
+    // Supprimer d'abord toutes les données associées au formulaire
+    const { error: deleteDataError } = await supabase
+      .from('data')
+      .delete()
+      .eq('form_id', formId);
+
+    if (deleteDataError) {
+      console.error("Erreur lors de la suppression des données du formulaire:", deleteDataError);
+      return false;
+    }
+
+    // Supprimer le formulaire
+    const { error: deleteFormError } = await supabase
+      .from('forms')
+      .delete()
+      .eq('id', formId);
+
+    if (deleteFormError) {
+      console.error("Erreur lors de la suppression du formulaire:", deleteFormError);
+      return false;
+    }
+
+    console.log("Formulaire supprimé avec succès");
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de la suppression du formulaire:", error);
+    return false;
   }
 };
 

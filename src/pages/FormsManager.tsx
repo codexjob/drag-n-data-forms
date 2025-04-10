@@ -1,16 +1,32 @@
 
 import React, { useEffect, useState } from 'react';
-import { fetchForms, FormData, publishForm } from '@/services/formService';
+import { fetchForms, FormData, publishForm, deleteForm } from '@/services/formService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ArrowLeft, CalendarDays, Copy, Edit, Eye, List, Plus, Settings, Share2 } from 'lucide-react';
+import { 
+  ArrowLeft, CalendarDays, Copy, Edit, Eye, 
+  List, Plus, Settings, Share2, Trash2 
+} from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const FormsManager: React.FC = () => {
   const [forms, setForms] = useState<FormData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [formToDelete, setFormToDelete] = useState<FormData | null>(null);
   const navigate = useNavigate();
 
   const loadForms = async () => {
@@ -52,6 +68,35 @@ const FormsManager: React.FC = () => {
 
   const handleNewForm = () => {
     navigate('/form/new');
+  };
+
+  const confirmDeleteForm = (form: FormData) => {
+    setFormToDelete(form);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteForm = async () => {
+    if (!formToDelete || !formToDelete.id) {
+      return;
+    }
+
+    setDeletingFormId(formToDelete.id);
+    try {
+      const success = await deleteForm(formToDelete.id);
+      if (success) {
+        toast.success("Formulaire supprimé avec succès");
+        loadForms();
+      } else {
+        toast.error("Échec de la suppression du formulaire");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      toast.error("Erreur lors de la suppression du formulaire");
+    } finally {
+      setDeletingFormId(null);
+      setShowDeleteDialog(false);
+      setFormToDelete(null);
+    }
   };
 
   return (
@@ -184,12 +229,48 @@ const FormsManager: React.FC = () => {
                       Réponses
                     </Button>
                   )}
+
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => confirmDeleteForm(form)}
+                    disabled={deletingFormId === form.id}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    {deletingFormId === form.id ? 'Suppression...' : 'Supprimer'}
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
         )}
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center">
+              <Trash2 className="mr-2 h-5 w-5 text-destructive" />
+              Supprimer le formulaire
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer le formulaire "{formToDelete?.title}" ?
+              <br />
+              <strong className="text-destructive">Cette action est irréversible.</strong> Toutes les données associées à ce formulaire seront également supprimées.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={handleDeleteForm}
+              disabled={deletingFormId !== null}
+            >
+              {deletingFormId ? 'Suppression...' : 'Supprimer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

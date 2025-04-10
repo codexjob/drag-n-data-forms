@@ -7,12 +7,16 @@ import FormBuilderHeader from './form-builder/FormBuilderHeader';
 import FormTitleSection from './form-builder/FormTitleSection';
 import FormBuilderLayout from './form-builder/FormBuilderLayout';
 import DbSchemaDialog from './form-builder/DbSchemaDialog';
+import DeleteFormDialog from './form-builder/DeleteFormDialog';
 import { useFormBuilderState } from './form-builder/useFormBuilderState';
+import { deleteForm } from '@/services/formService';
+import { toast } from 'sonner';
 
 const FormBuilder: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = id && id !== 'new';
+  const [isDeleting, setIsDeleting] = React.useState(false);
   
   console.log("FormBuilder rendering with ID:", id);
   
@@ -45,6 +49,29 @@ const FormBuilder: React.FC = () => {
       navigate('/forms');
     } else {
       console.error("Failed to save form");
+    }
+  };
+
+  const handleFormDelete = async () => {
+    if (!id || id === 'new') {
+      toast.error("Impossible de supprimer un formulaire non sauvegardé");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const success = await deleteForm(id);
+      if (success) {
+        toast.success("Formulaire supprimé avec succès");
+        navigate('/forms');
+      } else {
+        toast.error("Échec de la suppression du formulaire");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      toast.error("Erreur lors de la suppression du formulaire");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -93,6 +120,17 @@ const FormBuilder: React.FC = () => {
           handleFormSave={completeFormSave}
           saving={saving}
         />
+
+        {isEditing && (
+          <div className="flex justify-end mt-4">
+            <DeleteFormDialog
+              formId={id}
+              formTitle={formTitle}
+              onDelete={handleFormDelete}
+              isDeleting={isDeleting}
+            />
+          </div>
+        )}
       </div>
     </DndProvider>
   );
