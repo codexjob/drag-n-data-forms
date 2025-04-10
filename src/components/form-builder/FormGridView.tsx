@@ -30,18 +30,18 @@ const FormGridView: React.FC<FormGridViewProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {forms.map((form) => (
-        <Card key={form.id} className="bg-white shadow-sm flex flex-col">
+        <Card key={form.id} className="bg-white shadow-sm flex flex-col dark:bg-dragndrop-dark-lightgray dark:border-dragndrop-dark-gray">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
-              <CardTitle className="text-xl font-semibold text-dragndrop-text">{form.title}</CardTitle>
-              <Badge variant={form.published ? "success" : "secondary"}>
+              <CardTitle className="text-xl font-semibold text-dragndrop-text dark:text-dragndrop-dark-text">{form.title}</CardTitle>
+              <Badge variant={form.published ? "success" : "secondary"} className="dark:text-dragndrop-dark-text">
                 {form.published ? "Publié" : "Brouillon"}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="pb-2 flex-grow">
-            <p className="text-dragndrop-darkgray mb-2 text-sm line-clamp-2">{form.description}</p>
-            <p className="text-dragndrop-darkgray text-xs flex items-center">
+            <p className="text-dragndrop-darkgray dark:text-dragndrop-dark-darkgray mb-2 text-sm line-clamp-2">{form.description}</p>
+            <p className="text-dragndrop-darkgray dark:text-dragndrop-dark-darkgray text-xs flex items-center">
               <CalendarDays className="h-3 w-3 mr-1" />
               Créé le {new Date(form.created_at || '').toLocaleDateString()}
             </p>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchForms, FormData, publishForm, unpublishForm, deleteForm } from '@/services/formService';
@@ -18,6 +19,7 @@ import { Trash2 } from 'lucide-react';
 import ViewToggle, { ViewMode } from '@/components/form-builder/ViewToggle';
 import FormGridView from '@/components/form-builder/FormGridView';
 import FormListView from '@/components/form-builder/FormListView';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const Index = () => {
   const [forms, setForms] = useState<FormData[]>([]);
@@ -112,19 +114,20 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dragndrop-lightgray">
+    <div className="min-h-screen bg-dragndrop-lightgray dark:bg-dragndrop-dark-background">
       <div className="container mx-auto py-6 px-4">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-dragndrop-text">Mes Formulaires</h1>
-            <p className="text-dragndrop-darkgray">
+            <h1 className="text-2xl font-bold text-dragndrop-text dark:text-dragndrop-dark-text">Mes Formulaires</h1>
+            <p className="text-dragndrop-darkgray dark:text-dragndrop-dark-darkgray">
               Gérez vos formulaires et accédez aux réponses
             </p>
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
             <Button 
-              className="bg-dragndrop-primary hover:bg-dragndrop-secondary"
+              className="bg-dragndrop-primary hover:bg-dragndrop-secondary dark:bg-dragndrop-dark-primary dark:hover:bg-dragndrop-dark-secondary"
               onClick={handleNewForm}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -135,19 +138,19 @@ const Index = () => {
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-dragndrop-primary"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-dragndrop-primary dark:border-dragndrop-dark-primary"></div>
           </div>
         ) : forms.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
+          <div className="text-center py-12 bg-white dark:bg-dragndrop-dark-lightgray rounded-lg shadow">
             <div className="mb-4">
-              <List className="h-12 w-12 mx-auto text-dragndrop-primary" />
+              <List className="h-12 w-12 mx-auto text-dragndrop-primary dark:text-dragndrop-dark-primary" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Aucun formulaire trouvé</h2>
-            <p className="text-dragndrop-darkgray mb-6">
+            <h2 className="text-xl font-semibold mb-2 dark:text-dragndrop-dark-text">Aucun formulaire trouvé</h2>
+            <p className="text-dragndrop-darkgray dark:text-dragndrop-dark-darkgray mb-6">
               Vous n'avez pas encore créé de formulaire.
             </p>
             <Button 
-              className="bg-dragndrop-primary hover:bg-dragndrop-secondary"
+              className="bg-dragndrop-primary hover:bg-dragndrop-secondary dark:bg-dragndrop-dark-primary dark:hover:bg-dragndrop-dark-secondary"
               onClick={handleNewForm}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -176,20 +179,20 @@ const Index = () => {
       </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="dark:bg-dragndrop-dark-lightgray dark:text-dragndrop-dark-text dark:border-dragndrop-dark-gray">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center">
+            <AlertDialogTitle className="flex items-center dark:text-dragndrop-dark-text">
               <Trash2 className="mr-2 h-5 w-5 text-destructive" />
               Supprimer le formulaire
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="dark:text-dragndrop-dark-darkgray">
               Êtes-vous sûr de vouloir supprimer le formulaire "{formToDelete?.title}" ?
               <br />
               <strong className="text-destructive">Cette action est irréversible.</strong> Toutes les données associées à ce formulaire seront également supprimées.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel className="dark:bg-dragndrop-dark-gray dark:text-dragndrop-dark-text dark:hover:bg-dragndrop-dark-darkgray">Annuler</AlertDialogCancel>
             <AlertDialogAction 
               className="bg-destructive hover:bg-destructive/90"
               onClick={handleDeleteForm}

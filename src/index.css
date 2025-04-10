@@ -104,21 +104,21 @@
 }
 
 .droppable-area.can-drop {
-  @apply bg-dragndrop-lightgray border-2 border-dashed border-dragndrop-primary;
+  @apply bg-dragndrop-lightgray border-2 border-dashed border-dragndrop-primary dark:bg-dragndrop-dark-lightgray dark:border-dragndrop-dark-primary;
 }
 
 .form-element {
-  @apply p-4 mb-3 bg-white rounded-md border border-dragndrop-gray hover:border-dragndrop-primary transition-all duration-200 relative;
+  @apply p-4 mb-3 bg-white rounded-md border border-dragndrop-gray hover:border-dragndrop-primary transition-all duration-200 relative dark:bg-dragndrop-dark-background dark:border-dragndrop-dark-gray dark:hover:border-dragndrop-dark-primary;
 }
 
 .form-element-dragging {
-  @apply opacity-50 border-2 border-dragndrop-primary;
+  @apply opacity-50 border-2 border-dragndrop-primary dark:border-dragndrop-dark-primary;
 }
 
 .form-element-selected {
-  @apply border-2 border-dragndrop-primary;
+  @apply border-2 border-dragndrop-primary dark:border-dragndrop-dark-primary;
 }
 
 .element-config-panel {
-  @apply p-4 bg-white rounded-md border border-dragndrop-gray;
+  @apply p-4 bg-white rounded-md border border-dragndrop-gray dark:bg-dragndrop-dark-background dark:border-dragndrop-dark-gray;
 }

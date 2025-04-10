@@ -71,7 +71,17 @@ export default {
                     text: '#1D2939',
                     lightgray: '#F9FAFB',
                     gray: '#E4E7EC',
-                    darkgray: '#667085'
+                    darkgray: '#667085',
+                    dark: {
+                        primary: '#9D75F5',
+                        secondary: '#6366F1',
+                        accent: '#22C55E',
+                        background: '#1A1F2C',
+                        text: '#F9FAFB',
+                        lightgray: '#222222',
+                        gray: '#333333',
+                        darkgray: '#9F9EA1'
+                    }
                 }
 			},
 			borderRadius: {
