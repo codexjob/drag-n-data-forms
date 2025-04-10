@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { FormData } from '@/services/formService';
-import { Copy, Edit, Eye, List, Settings, Share2 } from 'lucide-react';
+import { Copy, Edit, Eye, List, Settings, Share2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DeleteFormDialog from './DeleteFormDialog';
 import {
@@ -50,7 +50,7 @@ const FormActionButtons: React.FC<FormActionButtonsProps> = ({
               onClick={() => onPublish(form.id || '')}
               disabled={form.published}
             >
-              Publier
+              <Eye className="h-4 w-4 mr-2" /> Publier
             </DropdownMenuItem>
           )}
           
@@ -63,6 +63,12 @@ const FormActionButtons: React.FC<FormActionButtonsProps> = ({
           {form.published && (
             <DropdownMenuItem onClick={() => copyFormLink(form.id || '')}>
               <Copy className="h-4 w-4 mr-2" /> Copier lien
+            </DropdownMenuItem>
+          )}
+          
+          {form.published && (
+            <DropdownMenuItem onClick={() => navigate(`/form/${form.id}`)}>
+              <Share2 className="h-4 w-4 mr-2" /> Partager
             </DropdownMenuItem>
           )}
           
@@ -81,6 +87,7 @@ const FormActionButtons: React.FC<FormActionButtonsProps> = ({
             onClick={onDelete}
             disabled={isDeleting}
           >
+            <Trash2 className="h-4 w-4 mr-2" />
             {isDeleting ? 'Suppression...' : 'Supprimer'}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -88,85 +95,79 @@ const FormActionButtons: React.FC<FormActionButtonsProps> = ({
     );
   }
   
+  // Pour le mode grille, regroupons les boutons dans un layout plus compact
   return (
-    <div className="flex flex-wrap gap-2 pt-2">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={() => navigate(`/form/${form.id}/edit`)}
-      >
-        <Edit className="h-4 w-4 mr-1" />
-        Éditer
-      </Button>
-      
-      <Button 
-        variant="default" 
-        size="sm" 
-        className={form.published ? "bg-gray-400 hover:bg-gray-500 cursor-not-allowed" : "bg-dragndrop-primary hover:bg-dragndrop-secondary"}
-        onClick={() => !form.published && onPublish(form.id || '')}
-        disabled={form.published}
-      >
-        {form.published ? "Déjà publié" : "Publier"}
-      </Button>
-      
-      {form.published && (
+    <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 mb-2">
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => navigate(`/form/${form.id}`)}
+          onClick={() => navigate(`/form/${form.id}/edit`)}
         >
-          <Eye className="h-4 w-4 mr-1" />
-          Voir
+          <Edit className="h-4 w-4 mr-1" />
+          Éditer
         </Button>
-      )}
+        
+        {!form.published ? (
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="bg-dragndrop-primary hover:bg-dragndrop-secondary"
+            onClick={() => onPublish(form.id || '')}
+          >
+            Publier
+          </Button>
+        ) : (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate(`/form/${form.id}`)}
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            Voir
+          </Button>
+        )}
+      </div>
       
-      {form.published && (
+      <div className="flex flex-wrap gap-2">
+        {form.published && (
+          <>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => copyFormLink(form.id || '')}
+            >
+              <Copy className="h-4 w-4 mr-1" />
+              Copier
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate(`/responses/${form.id}`)}
+            >
+              <List className="h-4 w-4 mr-1" />
+              Réponses
+            </Button>
+          </>
+        )}
+        
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => copyFormLink(form.id || '')}
+          onClick={() => navigate(`/form/${form.id}/config`)}
         >
-          <Copy className="h-4 w-4 mr-1" />
-          Copier lien
+          <Settings className="h-4 w-4 mr-1" />
+          Config
         </Button>
-      )}
-      
-      {form.published && (
-        <Button 
-          variant="outline" 
-          size="sm" 
-        >
-          <Share2 className="h-4 w-4 mr-1" />
-          Partager
-        </Button>
-      )}
-      
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={() => navigate(`/form/${form.id}/config`)}
-      >
-        <Settings className="h-4 w-4 mr-1" />
-        Config
-      </Button>
-      
-      {form.published && (
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => navigate(`/responses/${form.id}`)}
-        >
-          <List className="h-4 w-4 mr-1" />
-          Réponses
-        </Button>
-      )}
-
-      <DeleteFormDialog
-        formId={form.id}
-        formTitle={form.title}
-        onDelete={onDelete}
-        isDeleting={isDeleting}
-      />
+        
+        <DeleteFormDialog
+          formId={form.id}
+          formTitle={form.title}
+          onDelete={onDelete}
+          isDeleting={isDeleting}
+        />
+      </div>
     </div>
   );
 };

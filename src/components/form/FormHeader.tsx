@@ -13,7 +13,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({ title, description }) => {
   return (
     <div className="mb-6">
       <Button variant="outline" asChild className="mb-4">
-        <Link to="/">
+        <Link to="/forms">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Retour aux formulaires
         </Link>
