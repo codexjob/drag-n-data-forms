@@ -9,6 +9,7 @@ import FormActionButtons from './FormActionButtons';
 interface FormGridViewProps {
   forms: FormData[];
   onPublish: (formId: string) => Promise<void>;
+  onUnpublish: (formId: string) => Promise<void>;
   copyFormLink: (formId: string) => void;
   onDeleteForm: (form: FormData) => void;
   deletingFormId: string | null;
@@ -17,6 +18,7 @@ interface FormGridViewProps {
 const FormGridView: React.FC<FormGridViewProps> = ({
   forms,
   onPublish,
+  onUnpublish,
   copyFormLink,
   onDeleteForm,
   deletingFormId
@@ -48,6 +50,7 @@ const FormGridView: React.FC<FormGridViewProps> = ({
             <FormActionButtons
               form={form}
               onPublish={onPublish}
+              onUnpublish={onUnpublish}
               copyFormLink={copyFormLink}
               onDelete={() => handleDeleteForm(form)}
               isDeleting={deletingFormId === form.id}

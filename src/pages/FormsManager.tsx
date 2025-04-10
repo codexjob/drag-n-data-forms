@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { fetchForms, FormData, publishForm, deleteForm } from '@/services/formService';
+import { fetchForms, FormData, publishForm, unpublishForm, deleteForm } from '@/services/formService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { List, Plus, Trash2 } from 'lucide-react';
@@ -55,6 +54,19 @@ const FormsManager: React.FC = () => {
     } catch (error) {
       console.error("Erreur lors de la publication:", error);
       toast.error("Erreur lors de la publication du formulaire");
+    }
+  };
+
+  const handleUnpublish = async (formId: string) => {
+    try {
+      const result = await unpublishForm(formId);
+      if (result) {
+        toast.success("Formulaire dépublié avec succès");
+        loadForms();
+      }
+    } catch (error) {
+      console.error("Erreur lors de la dépublication:", error);
+      toast.error("Erreur lors de la dépublication du formulaire");
     }
   };
 
@@ -145,6 +157,7 @@ const FormsManager: React.FC = () => {
           <FormGridView 
             forms={forms}
             onPublish={handlePublish}
+            onUnpublish={handleUnpublish}
             copyFormLink={copyFormLink}
             onDeleteForm={confirmDeleteForm}
             deletingFormId={deletingFormId}
@@ -153,6 +166,7 @@ const FormsManager: React.FC = () => {
           <FormListView 
             forms={forms}
             onPublish={handlePublish}
+            onUnpublish={handleUnpublish}
             copyFormLink={copyFormLink}
             onDeleteForm={confirmDeleteForm}
             deletingFormId={deletingFormId}

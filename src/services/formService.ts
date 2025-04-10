@@ -214,6 +214,27 @@ export const publishForm = async (formId: string): Promise<boolean> => {
   }
 };
 
+// Dépublier un formulaire
+export const unpublishForm = async (formId: string): Promise<boolean> => {
+  try {
+    // Update the form as unpublished
+    const { error: updateError } = await supabase
+      .from('forms')
+      .update({ published: false })
+      .eq('id', formId);
+
+    if (updateError) {
+      console.error("Erreur lors de la dépublication du formulaire:", updateError);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de la dépublication du formulaire:", error);
+    return false;
+  }
+};
+
 // Récupérer tous les formulaires créés
 export const fetchForms = async (): Promise<FormData[]> => {
   try {

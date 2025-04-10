@@ -9,6 +9,7 @@ import { CalendarDays } from 'lucide-react';
 interface FormListViewProps {
   forms: FormData[];
   onPublish: (formId: string) => Promise<void>;
+  onUnpublish: (formId: string) => Promise<void>;
   copyFormLink: (formId: string) => void;
   onDeleteForm: (form: FormData) => void;
   deletingFormId: string | null;
@@ -17,6 +18,7 @@ interface FormListViewProps {
 const FormListView: React.FC<FormListViewProps> = ({
   forms,
   onPublish,
+  onUnpublish,
   copyFormLink,
   onDeleteForm,
   deletingFormId
@@ -59,6 +61,7 @@ const FormListView: React.FC<FormListViewProps> = ({
                 <FormActionButtons
                   form={form}
                   onPublish={onPublish}
+                  onUnpublish={onUnpublish}
                   copyFormLink={copyFormLink}
                   onDelete={() => handleDeleteForm(form)}
                   isDeleting={deletingFormId === form.id}
