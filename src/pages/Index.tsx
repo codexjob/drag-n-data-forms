@@ -1,208 +1,89 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { fetchForms, FormData, publishForm, unpublishForm, deleteForm } from '@/services/formService';
-import { Button } from '@/components/ui/button';
-import { List, Plus } from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Trash2 } from 'lucide-react';
-import ViewToggle, { ViewMode } from '@/components/form-builder/ViewToggle';
-import FormGridView from '@/components/form-builder/FormGridView';
-import FormListView from '@/components/form-builder/FormListView';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { Database, FileText, Settings } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 
-const Index = () => {
-  const [forms, setForms] = useState<FormData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [formToDelete, setFormToDelete] = useState<FormData | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    loadForms();
-  }, []);
-
-  const loadForms = async () => {
-    setLoading(true);
-    try {
-      const formsList = await fetchForms();
-      setForms(formsList);
-    } catch (error) {
-      console.error("Erreur lors du chargement des formulaires:", error);
-      toast.error("Erreur lors du chargement des formulaires");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePublish = async (formId: string) => {
-    try {
-      const result = await publishForm(formId);
-      if (result) {
-        toast.success("Formulaire publié avec succès");
-        loadForms();
-      }
-    } catch (error) {
-      console.error("Erreur lors de la publication:", error);
-      toast.error("Erreur lors de la publication du formulaire");
-    }
-  };
-
-  const handleUnpublish = async (formId: string) => {
-    try {
-      const result = await unpublishForm(formId);
-      if (result) {
-        toast.success("Formulaire dépublié avec succès");
-        loadForms();
-      }
-    } catch (error) {
-      console.error("Erreur lors de la dépublication:", error);
-      toast.error("Erreur lors de la dépublication du formulaire");
-    }
-  };
-
-  const copyFormLink = (formId: string) => {
-    const url = `${window.location.origin}/form/${formId}`;
-    navigator.clipboard.writeText(url).then(() => {
-      toast.success("Lien du formulaire copié dans le presse-papier");
-    });
-  };
-
-  const handleNewForm = () => {
-    navigate('/form/new');
-  };
-
-  const confirmDeleteForm = (form: FormData) => {
-    setFormToDelete(form);
-    setShowDeleteDialog(true);
-  };
-
-  const handleDeleteForm = async () => {
-    if (!formToDelete || !formToDelete.id) {
-      return;
-    }
-
-    setDeletingFormId(formToDelete.id);
-    try {
-      const success = await deleteForm(formToDelete.id);
-      if (success) {
-        toast.success("Formulaire supprimé avec succès");
-        loadForms();
-      } else {
-        toast.error("Échec de la suppression du formulaire");
-      }
-    } catch (error) {
-      console.error("Erreur lors de la suppression:", error);
-      toast.error("Erreur lors de la suppression du formulaire");
-    } finally {
-      setDeletingFormId(null);
-      setShowDeleteDialog(false);
-      setFormToDelete(null);
-    }
-  };
-
+const Index: React.FC = () => {
   return (
-    <div className="min-h-screen bg-dragndrop-lightgray dark:bg-dragndrop-dark-background">
-      <div className="container mx-auto py-6 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-dragndrop-text dark:text-dragndrop-dark-text">Mes Formulaires</h1>
-            <p className="text-dragndrop-darkgray dark:text-dragndrop-dark-darkgray">
-              Gérez vos formulaires et accédez aux réponses
-            </p>
+    <div className="flex min-h-screen flex-col bg-white dark:bg-dragndrop-dark-gray">
+      <header className="sticky top-0 z-10 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 max-w-screen-2xl items-center">
+          <div className="mr-4 hidden md:flex">
+            <a className="mr-6 flex items-center space-x-2" href="/">
+              <FileText className="h-6 w-6" />
+              <span className="hidden font-bold sm:inline-block">
+                FormBuilder
+              </span>
+            </a>
+            <nav className="flex items-center gap-6 text-sm">
+              <Link to="/forms" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                Formulaires
+              </Link>
+              <Link to="/db-connections" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                Connexions BDD
+              </Link>
+            </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-1 items-center justify-end space-x-2">
             <ThemeToggle />
-            <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-            <Button 
-              className="bg-dragndrop-primary hover:bg-dragndrop-secondary dark:bg-dragndrop-dark-primary dark:hover:bg-dragndrop-dark-secondary"
-              onClick={handleNewForm}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Nouveau Formulaire
-            </Button>
           </div>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-dragndrop-primary dark:border-dragndrop-dark-primary"></div>
-          </div>
-        ) : forms.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-dragndrop-dark-lightgray rounded-lg shadow">
-            <div className="mb-4">
-              <List className="h-12 w-12 mx-auto text-dragndrop-primary dark:text-dragndrop-dark-primary" />
+      </header>
+      <main className="flex-1">
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container space-y-12 px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                  Créez des formulaires en quelques clics
+                </h1>
+                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                  Notre constructeur de formulaires drag-and-drop vous permet de créer rapidement des formulaires interactifs pour votre site web ou votre application.
+                </p>
+              </div>
             </div>
-            <h2 className="text-xl font-semibold mb-2 dark:text-dragndrop-dark-text">Aucun formulaire trouvé</h2>
-            <p className="text-dragndrop-darkgray dark:text-dragndrop-dark-darkgray mb-6">
-              Vous n'avez pas encore créé de formulaire.
-            </p>
-            <Button 
-              className="bg-dragndrop-primary hover:bg-dragndrop-secondary dark:bg-dragndrop-dark-primary dark:hover:bg-dragndrop-dark-secondary"
-              onClick={handleNewForm}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Créer mon premier formulaire
-            </Button>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              <div className="flex flex-col items-center space-y-4 rounded-lg border border-gray-200 p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-800">
+                <FileText className="h-10 w-10 text-dragndrop-primary" />
+                <h2 className="text-2xl font-bold">
+                  Formulaires Standard
+                </h2>
+                <p className="text-center text-gray-500 dark:text-gray-400">
+                  Créez des formulaires simples et efficaces qui stockent les données directement dans notre base de données intégrée, idéal pour des sondages, inscriptions et collectes de feedback.
+                </p>
+                <Link to="/form/new">
+                  <Button className="bg-dragndrop-primary hover:bg-dragndrop-secondary">
+                    Créer un formulaire
+                  </Button>
+                </Link>
+              </div>
+              <div className="flex flex-col items-center space-y-4 rounded-lg border border-gray-200 p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-800">
+                <Database className="h-10 w-10 text-dragndrop-primary" />
+                <h2 className="text-2xl font-bold">
+                  Connexion Base de Données
+                </h2>
+                <p className="text-center text-gray-500 dark:text-gray-400">
+                  Connectez-vous à vos propres bases de données (PostgreSQL, MySQL, Microsoft SQL Server) et créez des formulaires qui interagissent directement avec vos tables existantes.
+                </p>
+                <div className="flex gap-4">
+                  <Link to="/db-connections">
+                    <Button className="bg-dragndrop-primary hover:bg-dragndrop-secondary">
+                      Gérer les connexions
+                    </Button>
+                  </Link>
+                  <Link to="/dbform/new">
+                    <Button variant="outline">
+                      Créer un formulaire DB
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
-        ) : viewMode === 'grid' ? (
-          <FormGridView 
-            forms={forms}
-            onPublish={handlePublish}
-            onUnpublish={handleUnpublish}
-            copyFormLink={copyFormLink}
-            onDeleteForm={confirmDeleteForm}
-            deletingFormId={deletingFormId}
-          />
-        ) : (
-          <FormListView 
-            forms={forms}
-            onPublish={handlePublish}
-            onUnpublish={handleUnpublish}
-            copyFormLink={copyFormLink}
-            onDeleteForm={confirmDeleteForm}
-            deletingFormId={deletingFormId}
-          />
-        )}
-      </div>
-
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="dark:bg-dragndrop-dark-lightgray dark:text-dragndrop-dark-text dark:border-dragndrop-dark-gray">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center dark:text-dragndrop-dark-text">
-              <Trash2 className="mr-2 h-5 w-5 text-destructive" />
-              Supprimer le formulaire
-            </AlertDialogTitle>
-            <AlertDialogDescription className="dark:text-dragndrop-dark-darkgray">
-              Êtes-vous sûr de vouloir supprimer le formulaire "{formToDelete?.title}" ?
-              <br />
-              <strong className="text-destructive">Cette action est irréversible.</strong> Toutes les données associées à ce formulaire seront également supprimées.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="dark:bg-dragndrop-dark-gray dark:text-dragndrop-dark-text dark:hover:bg-dragndrop-dark-darkgray">Annuler</AlertDialogCancel>
-            <AlertDialogAction 
-              className="bg-destructive hover:bg-destructive/90"
-              onClick={handleDeleteForm}
-              disabled={deletingFormId !== null}
-            >
-              {deletingFormId ? 'Suppression...' : 'Supprimer'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </section>
+      </main>
     </div>
   );
 };

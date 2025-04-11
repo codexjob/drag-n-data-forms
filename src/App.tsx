@@ -11,6 +11,8 @@ import ViewForm from "./pages/ViewForm";
 import FormResponses from "./pages/FormResponses";
 import FormBuilder from "./components/FormBuilder";
 import FormConfig from "./pages/FormConfig";
+import DbConnections from "./pages/DbConnections";
+import DbFormBuilder from "./pages/DbFormBuilder";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,9 @@ const App = () => {
             <Route path="/form/:id/config" element={<FormConfig />} />
             <Route path="/form/new" element={<FormBuilder />} />
             <Route path="/responses/:id" element={<FormResponses />} />
+            <Route path="/db-connections" element={<DbConnections />} />
+            <Route path="/dbform/:id" element={<DbFormBuilder />} />
+            <Route path="/dbform/new" element={<DbFormBuilder />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
